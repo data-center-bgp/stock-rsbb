@@ -32,10 +32,27 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.local.example
 
 # vercel
 .vercel
 
+# serwist (generated at build time)
+/public/sw.js
+/public/sw.js.map
+/public/swe-worker*.js
+/public/swe-worker*.js.map
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local dev tools (e.g. cloudflared for phone testing over HTTPS)
+/.tools/
+
+# supabase CLI scratch files
+/supabase/.temp/
+
+# generated from the unit spreadsheets (real item/price data) — regenerate
+# with `npm run generate-import-sql` instead of committing
+/supabase/seed-*.sql
