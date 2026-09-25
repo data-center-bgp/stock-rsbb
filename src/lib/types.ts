@@ -74,6 +74,18 @@ export type OpnameCount = {
   selisih: number;
 };
 
+export type ProfileRole = "staff" | "admin";
+
+export type Profile = {
+  id: string; // = auth.users.id
+  email: string;
+  full_name: string | null;
+  role: ProfileRole;
+  id_gudang: number | null; // home unit, set by an admin
+  created_at: string;
+  updated_at: string;
+};
+
 // Item + Inventory + Unit + Location joined — what the /i/[token] scan screen shows.
 export type InventoryDetail = Inventory & {
   item: Pick<Item, "nama" | "satuan_jual">;

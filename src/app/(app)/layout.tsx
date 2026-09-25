@@ -14,6 +14,18 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   if (!user) redirect("/login");
 
+  // First visit creates the user's own profile (see 0004_profiles.sql for why
+  // this isn't a trigger on auth.users). Errors are ignored so the app still
+  // works before that migration has been run.
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (!profile && !profileError) {
+    await supabase.from("profiles").insert({ id: user.id });
+  }
+
   return (
     <div className="flex flex-1 bg-background lg:gap-4 lg:p-4 print:block print:p-0">
       <Sidebar />
@@ -26,7 +38,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <p className="hidden text-sm text-muted lg:block">{formatLongDate()}</p>
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <UserMenu email={user.email ?? ""} />
+            <UserMenu name={profile?.full_name ?? null} email={user.email ?? ""} />
           </div>
         </header>
 

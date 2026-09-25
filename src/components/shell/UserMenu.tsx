@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { LogOutIcon, SpinnerIcon } from "@/components/icons";
 
-export function UserMenu({ email }: { email: string }) {
+export function UserMenu({ name, email }: { name: string | null; email: string }) {
+  const displayName = name?.trim() || email;
   const router = useRouter();
   const [signingOut, setSigningOut] = useState(false);
 
@@ -20,9 +21,11 @@ export function UserMenu({ email }: { email: string }) {
     <div className="flex items-center gap-2">
       <div className="hidden items-center gap-2.5 rounded-xl border border-border bg-surface py-1.5 pl-1.5 pr-3 sm:flex">
         <span className="grid size-7 place-items-center rounded-lg bg-primary/12 text-xs font-semibold uppercase text-primary">
-          {email.charAt(0)}
+          {displayName.charAt(0)}
         </span>
-        <span className="max-w-48 truncate text-sm">{email}</span>
+        <span className="max-w-48 truncate text-sm" title={email}>
+          {displayName}
+        </span>
       </div>
       <button
         type="button"
