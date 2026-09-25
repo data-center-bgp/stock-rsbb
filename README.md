@@ -30,11 +30,14 @@ https://claude.ai/artifact/KnPDEWNnH3jULDxhCey3iZ
 
 ## Structure
 
-- `src/app/login` — email/password login.
-- `src/app/scan` — mobile camera scanner (`src/components/scan/QrScanner.tsx`, `html5-qrcode`); on a successful decode, routes to `/i/[token]`.
-- `src/app/i/[token]` — the QR-scan landing page: resolves an `Inventory` row by its `qr_token` (from Supabase online, from the Dexie cache offline), then shows either the daily stock-transaction form or the stock-opname count form.
-- `src/app/dashboard` — web monitoring: current stock across units.
-- `src/app/dashboard/labels` — pick a unit, print its items' QR labels. The QR images are generated in the browser (`src/components/QrLabelGrid.tsx` + `src/lib/qr.ts`), encoding whatever origin the page was opened on.
+- `src/app/login` — email/password login (accounts are created by an admin in Supabase; no sign-up). Redirects to the dashboard if already signed in.
+- `src/app/(app)/layout.tsx` — the signed-in app shell: redirects to `/login` without a session, sidebar on desktop, bottom tab bar on phones (`src/components/shell/`).
+- `src/app/(app)/scan` — mobile camera scanner (`src/components/scan/QrScanner.tsx`, `html5-qrcode`); on a successful decode, routes to `/i/[token]`.
+- `src/app/(app)/i/[token]` — the QR-scan landing page: resolves an `Inventory` row by its `qr_token` (from Supabase online, from the Dexie cache offline), then shows either the daily stock-transaction form or the stock-opname count form.
+- `src/app/(app)/dashboard` — stat cards plus the stock table (search, status/unit filters, paging via URL params).
+- `src/app/(app)/dashboard/labels` — pick a unit, print its items' QR labels. The QR images are generated in the browser (`src/components/QrLabelGrid.tsx` + `src/lib/qr.ts`), encoding whatever origin the page was opened on.
+- `src/components/ui.tsx` — shared input/button/card/alert styles; theme tokens live in `src/app/globals.css` (light/dark via a `dark` class on `<html>`).
+- `src/lib/dates.ts` — the app's time zone (`Asia/Jakarta`), used for "today" in dashboard stats and the day's opname session.
 - `src/lib/types.ts` — TypeScript types mirroring the ERD; keep in sync with the SQL migrations.
 - `supabase/migrations/0001_init.sql` — the `stock_rsbb` schema: `item`, `producer`, `unit`, `location`, `inventory`, `stock_transaction`, `opname_session`, `opname_count`, plus a trigger that keeps `inventory.current_qty` in sync with transactions.
 - `supabase/migrations/0002_source_ids.sql` — adds `*_source` columns (the original IDs from the unit spreadsheets) so imports are idempotent — see the import script below.

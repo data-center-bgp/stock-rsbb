@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Alert } from "@/components/ui";
 
 // Our labels encode `<origin>/i/<qr_token>`. Accept that (from any origin —
 // labels may have been printed from localhost or another host) or a bare
@@ -17,7 +18,7 @@ function tokenPathFrom(decodedText: string): string | null {
 
 export function QrScanner() {
   const router = useRouter();
-  const [status, setStatus] = useState<string | null>(null);
+  const [status, setStatus] = useState<{ tone: "success" | "warning"; text: string } | null>(null);
 
   useEffect(() => {
     let scanner: import("html5-qrcode").Html5QrcodeScanner | undefined;
@@ -51,11 +52,11 @@ export function QrScanner() {
           if (handled) return;
           const path = tokenPathFrom(decodedText);
           if (!path) {
-            setStatus("QR terbaca, tapi bukan label Stock RSBB.");
+            setStatus({ tone: "warning", text: "QR terbaca, tapi bukan label Stock RSBB." });
             return;
           }
           handled = true;
-          setStatus("QR terbaca, membuka item...");
+          setStatus({ tone: "success", text: "QR terbaca, membuka item..." });
           scanner?.clear().catch(() => {});
           router.push(path);
         },
@@ -72,9 +73,9 @@ export function QrScanner() {
   }, [router]);
 
   return (
-    <div>
+    <div className="flex flex-col gap-3">
       <div id="qr-reader" />
-      {status && <p className="mt-3 text-sm font-medium">{status}</p>}
+      {status && <Alert tone={status.tone}>{status.text}</Alert>}
     </div>
   );
 }

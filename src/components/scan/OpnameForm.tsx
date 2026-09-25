@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { ensureOpnameSession } from "@/lib/opname";
+import { SpinnerIcon } from "@/components/icons";
+import { Alert, fieldClass, primaryButtonClass } from "@/components/ui";
 import type { InventoryDetail } from "@/lib/types";
 
 export function OpnameForm({ inventory }: { inventory: InventoryDetail }) {
@@ -58,37 +60,48 @@ export function OpnameForm({ inventory }: { inventory: InventoryDetail }) {
     );
   }
 
-  return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-      <p className="text-sm text-zinc-600">
-        Stok sistem: <span className="font-medium">{inventory.current_qty}</span>{" "}
-        {inventory.item.satuan_jual}
-      </p>
+  const variance = countedQty === "" ? null : Number(countedQty) - inventory.current_qty;
 
-      <label className="flex flex-col gap-1 text-sm">
-        Quantity hasil hitung ({inventory.item.satuan_jual})
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="counted" className="text-sm font-medium">
+          Jumlah hasil hitung fisik ({inventory.item.satuan_jual})
+        </label>
         <input
+          id="counted"
           type="number"
+          inputMode="numeric"
           min={0}
           required
           value={countedQty}
           onChange={(e) => setCountedQty(e.target.value)}
-          className="rounded border border-black/15 px-3 py-2 text-lg"
+          className={`${fieldClass} h-12 w-full px-3.5 text-lg font-semibold tabular-nums`}
         />
-      </label>
+      </div>
 
-      <button
-        type="submit"
-        disabled={status === "saving"}
-        className="rounded bg-black px-4 py-3 text-white disabled:opacity-50"
-      >
+      <div className="flex items-center justify-between rounded-xl bg-surface-muted px-4 py-3 text-sm">
+        <span className="text-muted">Selisih dengan stok sistem</span>
+        <span
+          className={`font-semibold tabular-nums ${
+            variance === null || variance === 0
+              ? "text-muted"
+              : variance > 0
+                ? "text-emerald-700 dark:text-emerald-400"
+                : "text-rose-700 dark:text-rose-400"
+          }`}
+        >
+          {variance === null ? "—" : variance > 0 ? `+${variance}` : variance}
+        </span>
+      </div>
+
+      <button type="submit" disabled={status === "saving"} className={`${primaryButtonClass} w-full`}>
+        {status === "saving" && <SpinnerIcon className="size-4" />}
         {status === "saving" ? "Menyimpan..." : "Simpan hasil hitung"}
       </button>
 
-      {status === "saved" && <p className="text-sm text-green-700">Tersimpan.</p>}
-      {status === "error" && errorMessage && (
-        <p className="text-sm text-red-600">{errorMessage}</p>
-      )}
+      {status === "saved" && <Alert tone="success">Hasil hitung tersimpan.</Alert>}
+      {status === "error" && errorMessage && <Alert tone="danger">{errorMessage}</Alert>}
     </form>
   );
 }

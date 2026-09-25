@@ -1,73 +1,52 @@
-"use client";
+import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { Logo } from "@/components/Logo";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { LoginForm } from "@/components/login/LoginForm";
+import { LoginShowcase } from "@/components/login/LoginShowcase";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+export const metadata: Metadata = {
+  title: "Masuk — Stock RSBB",
+};
 
-export default function LoginPage() {
-  const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-
-    setLoading(false);
-    if (error) {
-      setError(error.message);
-      return;
-    }
-    router.push("/dashboard");
-  }
+export default async function LoginPage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (user) redirect("/dashboard");
 
   return (
-    <div className="flex flex-1 items-center justify-center px-4">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-sm flex flex-col gap-4 rounded-lg border border-black/10 p-6"
-      >
-        <h1 className="text-xl font-semibold">Stock RSBB</h1>
-        <p className="text-sm text-zinc-600">Masuk untuk mulai bekerja.</p>
+    <main className="flex flex-1 bg-background lg:p-4">
+      <div className="mx-auto grid w-full max-w-[1440px] flex-1 lg:grid-cols-2 lg:gap-3 lg:rounded-[28px] lg:bg-surface lg:p-3 lg:shadow-[0_1px_2px_rgb(15_31_36/0.04),0_16px_48px_-16px_rgb(15_31_36/0.14)]">
+        <section className="flex flex-col bg-surface px-5 py-6 sm:px-10 lg:rounded-2xl lg:border lg:border-border">
+          <header className="flex items-center justify-between">
+            <Logo />
+            <ThemeToggle />
+          </header>
 
-        <label className="flex flex-col gap-1 text-sm">
-          Email
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="rounded border border-black/15 px-3 py-2"
-          />
-        </label>
+          <div className="flex flex-1 items-center justify-center py-12">
+            <div className="w-full max-w-sm">
+              <div className="mb-8 text-center">
+                <h1 className="text-balance text-2xl font-semibold tracking-tight sm:text-[28px]">
+                  Selamat datang di Stock RSBB
+                </h1>
+                <p className="mt-2 text-sm leading-relaxed text-muted">
+                  Masuk dengan akun yang diberikan admin untuk mulai mencatat stok.
+                </p>
+              </div>
+              <LoginForm />
+            </div>
+          </div>
 
-        <label className="flex flex-col gap-1 text-sm">
-          Password
-          <input
-            type="password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="rounded border border-black/15 px-3 py-2"
-          />
-        </label>
+          <footer className="text-center text-xs text-muted">
+            © {new Date().getFullYear()} Stock RSBB. Hak cipta dilindungi.
+          </footer>
+        </section>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded bg-black px-4 py-2 text-white disabled:opacity-50"
-        >
-          {loading ? "Masuk..." : "Masuk"}
-        </button>
-      </form>
-    </div>
+        <LoginShowcase />
+      </div>
+    </main>
   );
 }

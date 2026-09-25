@@ -3,16 +3,24 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { offlineDb } from "@/lib/offline/db";
+import { SpinnerIcon } from "@/components/icons";
+import { Alert, fieldClass, inputClass, primaryButtonClass } from "@/components/ui";
 import type { InventoryDetail, StockTransactionType } from "@/lib/types";
 
-const REASONS: { value: StockTransactionType; label: string }[] = [
-  { value: "in_procurement", label: "Masuk — Procurement" },
-  { value: "in_return", label: "Masuk — Retur" },
-  { value: "out_transfer", label: "Keluar — Diberikan ke unit lain" },
-  { value: "out_other", label: "Keluar — Lainnya" },
+const TYPES: { value: StockTransactionType; direction: "in" | "out"; label: string; detail: string }[] = [
+  { value: "in_procurement", direction: "in", label: "Masuk", detail: "Procurement" },
+  { value: "in_return", direction: "in", label: "Masuk", detail: "Retur" },
+  { value: "out_transfer", direction: "out", label: "Keluar", detail: "Ke unit lain" },
+  { value: "out_other", direction: "out", label: "Keluar", detail: "Lainnya" },
 ];
 
-export function TransactionForm({ inventory }: { inventory: InventoryDetail }) {
+export function TransactionForm({
+  inventory,
+  onSaved,
+}: {
+  inventory: InventoryDetail;
+  onSaved?: (delta: number) => void;
+}) {
   const [type, setType] = useState<StockTransactionType>("out_transfer");
   const [quantity, setQuantity] = useState("");
   const [note, setNote] = useState("");
@@ -42,6 +50,7 @@ export function TransactionForm({ inventory }: { inventory: InventoryDetail }) {
         setStatus("saved");
         setQuantity("");
         setNote("");
+        onSaved?.(type.startsWith("in_") ? qty : -qty);
         return;
       }
 
@@ -72,60 +81,80 @@ export function TransactionForm({ inventory }: { inventory: InventoryDetail }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-      <label className="flex flex-col gap-1 text-sm">
-        Jenis
-        <select
-          value={type}
-          onChange={(e) => setType(e.target.value as StockTransactionType)}
-          className="rounded border border-black/15 px-3 py-2"
-        >
-          {REASONS.map((r) => (
-            <option key={r.value} value={r.value}>
-              {r.label}
-            </option>
-          ))}
-        </select>
-      </label>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      <fieldset>
+        <legend className="mb-2 text-sm font-medium">Jenis transaksi</legend>
+        <div className="grid grid-cols-2 gap-2">
+          {TYPES.map((t) => {
+            const selected = type === t.value;
+            return (
+              <label
+                key={t.value}
+                className={`cursor-pointer rounded-xl border px-3 py-2.5 transition-colors has-focus-visible:outline-2 has-focus-visible:outline-primary ${
+                  selected ? "border-primary bg-primary/8" : "border-border hover:bg-surface-muted"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="type"
+                  value={t.value}
+                  checked={selected}
+                  onChange={() => setType(t.value)}
+                  className="sr-only"
+                />
+                <span
+                  className={`block text-sm font-semibold ${
+                    t.direction === "in" ? "text-emerald-700 dark:text-emerald-400" : "text-rose-700 dark:text-rose-400"
+                  }`}
+                >
+                  {t.direction === "in" ? "+ " : "− "}
+                  {t.label}
+                </span>
+                <span className="block text-xs text-muted">{t.detail}</span>
+              </label>
+            );
+          })}
+        </div>
+      </fieldset>
 
-      <label className="flex flex-col gap-1 text-sm">
-        Quantity ({inventory.item.satuan_jual})
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="quantity" className="text-sm font-medium">
+          Jumlah ({inventory.item.satuan_jual})
+        </label>
         <input
+          id="quantity"
           type="number"
+          inputMode="numeric"
           min={1}
           required
           value={quantity}
           onChange={(e) => setQuantity(e.target.value)}
-          className="rounded border border-black/15 px-3 py-2 text-lg"
+          className={`${fieldClass} h-12 w-full px-3.5 text-lg font-semibold tabular-nums`}
         />
-      </label>
+      </div>
 
-      <label className="flex flex-col gap-1 text-sm">
-        Catatan (opsional)
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="note" className="text-sm font-medium">
+          Catatan <span className="font-normal text-muted">(opsional)</span>
+        </label>
         <input
+          id="note"
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          className="rounded border border-black/15 px-3 py-2"
+          className={`${inputClass} px-3.5`}
         />
-      </label>
+      </div>
 
-      <button
-        type="submit"
-        disabled={status === "saving"}
-        className="rounded bg-black px-4 py-3 text-white disabled:opacity-50"
-      >
+      <button type="submit" disabled={status === "saving"} className={`${primaryButtonClass} w-full`}>
+        {status === "saving" && <SpinnerIcon className="size-4" />}
         {status === "saving" ? "Menyimpan..." : "Simpan"}
       </button>
 
-      {status === "saved" && <p className="text-sm text-green-700">Tersimpan.</p>}
+      {status === "saved" && <Alert tone="success">Transaksi tersimpan.</Alert>}
       {status === "queued" && (
-        <p className="text-sm text-amber-700">
-          Tidak ada koneksi — disimpan di HP, akan tersinkron otomatis.
-        </p>
+        <Alert tone="warning">Tidak ada koneksi — disimpan di HP, akan tersinkron otomatis.</Alert>
       )}
-      {status === "error" && errorMessage && (
-        <p className="text-sm text-red-600">Gagal menyimpan: {errorMessage}</p>
-      )}
+      {status === "error" && errorMessage && <Alert tone="danger">Gagal menyimpan: {errorMessage}</Alert>}
     </form>
   );
 }

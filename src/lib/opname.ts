@@ -1,4 +1,5 @@
 import type { AppSupabaseClient } from "@/lib/supabase/types";
+import { todayInAppZone } from "@/lib/dates";
 
 // One opname session per unit per day (see the unique constraint in
 // 0001_init.sql). Reuses today's session if a supervisor/staff already
@@ -12,7 +13,7 @@ export async function ensureOpnameSession(
   idGudang: number,
   userId: string,
 ) {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayInAppZone();
 
   const { data, error } = await supabase
     .from("opname_session")
