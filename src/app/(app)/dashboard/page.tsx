@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
-import { createClient } from "@/lib/supabase/server";
+import { getSession } from "@/lib/session";
 import { formatDateTime, startOfTodayInAppZone, todayInAppZone } from "@/lib/dates";
 import { InventoryFilters } from "@/components/dashboard/InventoryFilters";
 import {
@@ -74,7 +74,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const page = Math.max(1, Number.parseInt(params.page ?? "1", 10) || 1);
   const from = (page - 1) * PAGE_SIZE;
 
-  const supabase = await createClient();
+  const { supabase, profile } = await getSession();
+  // Staff only ever get their own unit's rows back (RLS); say so in the copy.
+  const staffUnit = profile?.role === "staff" ? (profile.unit?.nama_gudang ?? "unit Anda") : null;
 
   let inventoryQuery = supabase
     .from("inventory")
@@ -120,14 +122,17 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
   return (
     <>
-      <PageHeader title="Dashboard" description="Ringkasan stok di semua unit." />
+      <PageHeader
+        title="Dashboard"
+        description={staffUnit ? `Ringkasan stok ${staffUnit}.` : "Ringkasan stok di semua unit."}
+      />
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <StatCard
           icon={<PackageIcon className="size-5" />}
           tone="bg-primary/12 text-primary"
           title="Total Item"
-          description="Item yang tercatat di semua unit"
+          description={staffUnit ? `Item yang tercatat di ${staffUnit}` : "Item yang tercatat di semua unit"}
           value={totalRes.count}
         />
         <StatCard

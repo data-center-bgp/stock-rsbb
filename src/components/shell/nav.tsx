@@ -8,14 +8,22 @@ import {
   PanelLeftOpenIcon,
   QrCodeIcon,
   ScanLineIcon,
+  UsersIcon,
 } from "@/components/icons";
 import { LogoMark } from "@/components/Logo";
 
-const NAV_ITEMS = [
+const BASE_ITEMS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboardIcon },
   { href: "/scan", label: "Scan QR", icon: ScanLineIcon },
   { href: "/dashboard/labels", label: "Label QR", icon: QrCodeIcon },
 ];
+
+const USERS_ITEM = { href: "/users", label: "Pengguna", icon: UsersIcon };
+
+// Only a convenience: /users itself and the database both check for master.
+function navItems(isMaster: boolean) {
+  return isMaster ? [...BASE_ITEMS, USERS_ITEM] : BASE_ITEMS;
+}
 
 function isActive(pathname: string, href: string) {
   if (href === "/dashboard") return pathname === "/dashboard";
@@ -39,7 +47,7 @@ function toggleSidebar() {
 // Collapsed/expanded is driven purely by a data attribute on <html> (see the
 // `sidebar-collapsed` variant), so there's no React state to mismatch with
 // the pre-paint script.
-export function Sidebar() {
+export function Sidebar({ isMaster }: { isMaster: boolean }) {
   const pathname = usePathname();
 
   return (
@@ -63,7 +71,7 @@ export function Sidebar() {
       </div>
 
       <nav className="flex flex-col gap-1">
-        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+        {navItems(isMaster).map(({ href, label, icon: Icon }) => {
           const active = isActive(pathname, href);
           return (
             <Link
@@ -87,13 +95,14 @@ export function Sidebar() {
   );
 }
 
-export function MobileNav() {
+export function MobileNav({ isMaster }: { isMaster: boolean }) {
   const pathname = usePathname();
+  const items = navItems(isMaster);
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden print:hidden">
-      <div className="mx-auto grid max-w-md grid-cols-3">
-        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+      <div className={`mx-auto grid max-w-md ${items.length === 4 ? "grid-cols-4" : "grid-cols-3"}`}>
+        {items.map(({ href, label, icon: Icon }) => {
           const active = isActive(pathname, href);
           const isScan = href === "/scan";
           return (

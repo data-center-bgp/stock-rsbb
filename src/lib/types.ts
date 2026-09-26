@@ -74,14 +74,17 @@ export type OpnameCount = {
   selisih: number;
 };
 
-export type ProfileRole = "staff" | "admin";
+// master: everything + user management; manager: read-only, all units;
+// staff: read/write own unit only. null = signed in, not approved yet.
+// Enforced by RLS in 0005_roles_and_access.sql — the UI only follows it.
+export type ProfileRole = "master" | "manager" | "staff";
 
 export type Profile = {
   id: string; // = auth.users.id
   email: string;
   full_name: string | null;
-  role: ProfileRole;
-  id_gudang: number | null; // home unit, set by an admin
+  role: ProfileRole | null;
+  id_gudang: number | null; // staff's unit, set by a master
   created_at: string;
   updated_at: string;
 };

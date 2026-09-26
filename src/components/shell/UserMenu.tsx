@@ -5,7 +5,16 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { LogOutIcon, SpinnerIcon } from "@/components/icons";
 
-export function UserMenu({ name, email }: { name: string | null; email: string }) {
+export function UserMenu({
+  name,
+  email,
+  detail,
+}: {
+  name: string | null;
+  email: string;
+  /** Role (and unit, for staff), shown under the name. */
+  detail?: string;
+}) {
   const displayName = name?.trim() || email;
   const router = useRouter();
   const [signingOut, setSigningOut] = useState(false);
@@ -19,12 +28,13 @@ export function UserMenu({ name, email }: { name: string | null; email: string }
 
   return (
     <div className="flex items-center gap-2">
-      <div className="hidden items-center gap-2.5 rounded-xl border border-border bg-surface py-1.5 pl-1.5 pr-3 sm:flex">
-        <span className="grid size-7 place-items-center rounded-lg bg-primary/12 text-xs font-semibold uppercase text-primary">
+      <div className="hidden items-center gap-2.5 rounded-xl border border-border bg-surface py-1 pl-1.5 pr-3 sm:flex">
+        <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-primary/12 text-xs font-semibold uppercase text-primary">
           {displayName.charAt(0)}
         </span>
-        <span className="max-w-48 truncate text-sm" title={email}>
-          {displayName}
+        <span className="flex min-w-0 flex-col leading-tight" title={email}>
+          <span className="max-w-48 truncate text-sm">{displayName}</span>
+          {detail && <span className="max-w-48 truncate text-[11px] text-muted">{detail}</span>}
         </span>
       </div>
       <button
