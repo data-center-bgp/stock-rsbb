@@ -15,8 +15,11 @@ export async function flushOfflineQueue(supabase: AppSupabaseClient) {
       id_inventory: tx.id_inventory,
       type: tx.type,
       quantity: tx.quantity,
-      transfer_group_id: tx.transfer_group_id,
-      note: tx.note,
+      transaction_date: tx.transaction_date,
+      id_distributor: tx.id_distributor,
+      id_hospital_unit: tx.id_hospital_unit,
+      batch_number: tx.batch_number,
+      expiry_date: tx.expiry_date,
       synced_offline: true,
     });
     if (!error) {

@@ -2,8 +2,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { getSession } from "@/lib/session";
-import { formatDateTime, startOfTodayInAppZone, todayInAppZone } from "@/lib/dates";
+import { formatDateTime, todayInAppZone } from "@/lib/dates";
 import { InventoryFilters } from "@/components/dashboard/InventoryFilters";
+import { DesktopOnly } from "@/components/shell/DesktopOnly";
 import {
   ArrowLeftRightIcon,
   ArrowRightIcon,
@@ -76,7 +77,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
   const { supabase, profile } = await getSession();
   // Staff only ever get their own unit's rows back (RLS); say so in the copy.
-  const staffUnit = profile?.role === "staff" ? (profile.unit?.nama_gudang ?? "unit Anda") : null;
+  const staffUnit = profile?.role === "staff" ? (profile.unit?.nama_gudang ?? "inventori Anda") : null;
 
   let inventoryQuery = supabase
     .from("inventory")
@@ -102,7 +103,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     supabase
       .from("stock_transaction")
       .select("id_transaction", { count: "exact", head: true })
-      .gte("created_at", startOfTodayInAppZone()),
+      .eq("transaction_date", todayInAppZone()),
     supabase
       .from("opname_count")
       .select("id_opname_count, opname_session!inner(opname_date)", { count: "exact", head: true })
@@ -121,10 +122,10 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const error = inventoryRes.error ?? unitsRes.error;
 
   return (
-    <>
+    <DesktopOnly>
       <PageHeader
         title="Dashboard"
-        description={staffUnit ? `Ringkasan stok ${staffUnit}.` : "Ringkasan stok di semua unit."}
+        description={staffUnit ? `Ringkasan stok ${staffUnit}.` : "Ringkasan stok di semua inventori."}
       />
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
@@ -132,7 +133,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           icon={<PackageIcon className="size-5" />}
           tone="bg-primary/12 text-primary"
           title="Total Item"
-          description={staffUnit ? `Item yang tercatat di ${staffUnit}` : "Item yang tercatat di semua unit"}
+          description={staffUnit ? `Item yang tercatat di ${staffUnit}` : "Item yang tercatat di semua inventori"}
           value={totalRes.count}
         />
         <StatCard
@@ -145,8 +146,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         <StatCard
           icon={<ArrowLeftRightIcon className="size-5" />}
           tone="bg-sky-500/12 text-sky-600 dark:text-sky-400"
-          title="Transaksi Hari Ini"
-          description="Barang masuk dan keluar hari ini"
+          title="Mutasi Hari Ini"
+          description="Barang masuk dan keluar dengan tanggal hari ini"
           value={txRes.count}
         />
         <StatCard
@@ -253,6 +254,6 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           </div>
         )}
       </section>
-    </>
+    </DesktopOnly>
   );
 }

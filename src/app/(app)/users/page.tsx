@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { UserAccessRow, type ManagedUser } from "@/components/users/UserAccessRow";
+import { DesktopOnly } from "@/components/shell/DesktopOnly";
 import { Alert, PageHeader, cardClass } from "@/components/ui";
 
 export const metadata: Metadata = { title: "Pengguna — Stock RSBB" };
@@ -22,7 +23,7 @@ export default async function UsersPage() {
   const pending = users.filter((u) => !u.role).length;
 
   return (
-    <>
+    <DesktopOnly>
       <PageHeader
         title="Pengguna"
         description={
@@ -70,6 +71,6 @@ export default async function UsersPage() {
           <dd className="mt-1 text-muted">Akses penuh ke semua inventori dan pengaturan pengguna.</dd>
         </div>
       </dl>
-    </>
+    </DesktopOnly>
   );
 }

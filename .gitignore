@@ -56,3 +56,6 @@ next-env.d.ts
 # generated from the unit spreadsheets (real item/price data) — regenerate
 # with `npm run generate-import-sql` instead of committing
 /supabase/seed-*.sql
+
+# generated reports (real item/stock data)
+/reports/

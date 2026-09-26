@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from "dexie";
-import type { InventoryDetail, StockTransactionType } from "@/lib/types";
+import type { Distributor, HospitalUnit, InventoryDetail, StockTransactionType } from "@/lib/types";
 
 // Queued writes made while offline, flushed to Supabase on reconnect.
 // Append-only inserts only — no edits to existing rows — so sync never
@@ -10,8 +10,11 @@ export type QueuedStockTransaction = {
   id_inventory: number;
   type: StockTransactionType;
   quantity: number;
-  transfer_group_id: string | null;
-  note: string | null;
+  transaction_date: string;
+  id_distributor: number | null;
+  id_hospital_unit: number | null;
+  batch_number: string | null;
+  expiry_date: string | null;
   created_at: string;
   // IndexedDB keys can't be boolean, so this is indexed as 0 (pending) / 1 (synced).
   synced: 0 | 1;
@@ -35,6 +38,9 @@ class OfflineDB extends Dexie {
   stockTransactions!: EntityTable<QueuedStockTransaction, "local_id">;
   opnameCounts!: EntityTable<QueuedOpnameCount, "local_id">;
   inventoryCache!: EntityTable<CachedInventory, "id_inventory">;
+  // Dropdown lists for the Mutasi form, so it still works without signal.
+  distributors!: EntityTable<Distributor, "id_distributor">;
+  hospitalUnits!: EntityTable<HospitalUnit, "id_hospital_unit">;
 
   constructor() {
     super("stock-rsbb-offline");
@@ -42,6 +48,10 @@ class OfflineDB extends Dexie {
       stockTransactions: "local_id, synced",
       opnameCounts: "local_id, synced",
       inventoryCache: "id_inventory, qr_token",
+    });
+    this.version(2).stores({
+      distributors: "id_distributor",
+      hospitalUnits: "id_hospital_unit",
     });
   }
 }

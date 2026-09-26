@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Alert } from "@/components/ui";
+import type { InputMode } from "@/lib/input-mode";
 
 // Our labels encode `<origin>/i/<qr_token>`. Accept that (from any origin —
 // labels may have been printed from localhost or another host) or a bare
@@ -16,7 +17,7 @@ function tokenPathFrom(decodedText: string): string | null {
   }
 }
 
-export function QrScanner() {
+export function QrScanner({ mode }: { mode: InputMode | null }) {
   const router = useRouter();
   const [status, setStatus] = useState<{ tone: "success" | "warning"; text: string } | null>(null);
 
@@ -58,7 +59,7 @@ export function QrScanner() {
           handled = true;
           setStatus({ tone: "success", text: "QR terbaca, membuka item..." });
           scanner?.clear().catch(() => {});
-          router.push(path);
+          router.push(mode ? `${path}?mode=${mode}` : path);
         },
         () => {
           // Per-frame decode miss while aiming the camera — expected, ignore.
@@ -70,7 +71,7 @@ export function QrScanner() {
       cancelled = true;
       scanner?.clear().catch(() => {});
     };
-  }, [router]);
+  }, [router, mode]);
 
   return (
     <div className="flex flex-col gap-3">

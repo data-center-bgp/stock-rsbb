@@ -4,23 +4,32 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { offlineDb } from "@/lib/offline/db";
-import { TransactionForm } from "@/components/scan/TransactionForm";
+import { MutasiForm } from "@/components/scan/MutasiForm";
 import { OpnameForm } from "@/components/scan/OpnameForm";
 import { ChevronLeftIcon, EyeIcon, MapPinIcon, PackageXIcon, ScanLineIcon, SpinnerIcon } from "@/components/icons";
 import { StockStatus, cardClass, primaryButtonClass } from "@/components/ui";
+import { scanHref, type InputMode } from "@/lib/input-mode";
 import type { InventoryDetail } from "@/lib/types";
-
-type Mode = "transaction" | "opname";
 
 const numberFormat = new Intl.NumberFormat("id-ID");
 
-// `canInput` is false for managers (read-only). The database rejects their
-// writes regardless; this just doesn't offer forms that would fail.
-export function ItemScreen({ token, canInput }: { token: string; canInput: boolean }) {
+// `initialMode` is the mode picked on /input before scanning (none when the
+// item was opened some other way, e.g. from the dashboard). `canInput` is
+// false for managers (read-only) — the database rejects their writes anyway.
+export function ItemScreen({
+  token,
+  canInput,
+  initialMode,
+}: {
+  token: string;
+  canInput: boolean;
+  initialMode: InputMode | null;
+}) {
   const [inventory, setInventory] = useState<InventoryDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
-  const [mode, setMode] = useState<Mode>("transaction");
+  const [mode, setMode] = useState<InputMode>(initialMode ?? "mutasi");
+  const backHref = canInput ? scanHref(mode) : scanHref(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -73,7 +82,7 @@ export function ItemScreen({ token, canInput }: { token: string; canInput: boole
 
   if (loading) {
     return (
-      <PageShell>
+      <PageShell backHref={backHref}>
         <p className="flex items-center justify-center gap-2 py-24 text-sm text-muted">
           <SpinnerIcon className="size-4" /> Memuat item...
         </p>
@@ -83,7 +92,7 @@ export function ItemScreen({ token, canInput }: { token: string; canInput: boole
 
   if (notFound || !inventory) {
     return (
-      <PageShell>
+      <PageShell backHref={backHref}>
         <div className={`${cardClass} flex flex-col items-center px-6 py-12 text-center`}>
           <span className="grid size-12 place-items-center rounded-2xl bg-rose-500/12 text-rose-600 dark:text-rose-400">
             <PackageXIcon className="size-6" />
@@ -92,7 +101,7 @@ export function ItemScreen({ token, canInput }: { token: string; canInput: boole
           <p className="mt-1 max-w-xs text-sm text-muted">
             Coba scan ulang, atau sambungkan ke internet lalu coba lagi.
           </p>
-          <Link href="/scan" className={`${primaryButtonClass} mt-6`}>
+          <Link href={backHref} className={`${primaryButtonClass} mt-6`}>
             <ScanLineIcon className="size-4" /> Scan ulang
           </Link>
         </div>
@@ -101,7 +110,7 @@ export function ItemScreen({ token, canInput }: { token: string; canInput: boole
   }
 
   return (
-    <PageShell>
+    <PageShell backHref={backHref}>
       <div className={`${cardClass} p-5`}>
         <div className="flex items-start justify-between gap-3">
           <h1 className="text-lg font-semibold leading-snug tracking-tight">{inventory.item.nama}</h1>
@@ -123,13 +132,13 @@ export function ItemScreen({ token, canInput }: { token: string; canInput: boole
       {!canInput ? (
         <div className={`${cardClass} mt-4 flex items-start gap-3 p-5 text-sm text-muted`}>
           <EyeIcon className="mt-0.5 size-4 shrink-0" />
-          Akun manajer hanya dapat melihat data. Pencatatan stok dan stock opname dilakukan oleh staf unit.
+          Akun manajer hanya dapat melihat data. Mutasi dan stock opname dicatat oleh staf inventori.
         </div>
       ) : (
         <>
           <div className="my-4 grid grid-cols-2 gap-1 rounded-xl border border-border bg-surface-muted p-1" role="tablist">
-            <ModeButton active={mode === "transaction"} onClick={() => setMode("transaction")}>
-              Stok Harian
+            <ModeButton active={mode === "mutasi"} onClick={() => setMode("mutasi")}>
+              Mutasi
             </ModeButton>
             <ModeButton active={mode === "opname"} onClick={() => setMode("opname")}>
               Stock Opname
@@ -137,10 +146,10 @@ export function ItemScreen({ token, canInput }: { token: string; canInput: boole
           </div>
 
           <div className={`${cardClass} p-5`}>
-            {mode === "transaction" ? (
-              <TransactionForm inventory={inventory} onSaved={applyDelta} />
+            {mode === "mutasi" ? (
+              <MutasiForm inventory={inventory} nextScanHref={scanHref("mutasi")} onSaved={applyDelta} />
             ) : (
-              <OpnameForm inventory={inventory} />
+              <OpnameForm inventory={inventory} nextScanHref={scanHref("opname")} />
             )}
           </div>
         </>
@@ -149,10 +158,10 @@ export function ItemScreen({ token, canInput }: { token: string; canInput: boole
   );
 }
 
-function PageShell({ children }: { children: React.ReactNode }) {
+function PageShell({ backHref, children }: { backHref: string; children: React.ReactNode }) {
   return (
     <div className="mx-auto w-full max-w-lg">
-      <Link href="/scan" className="mb-3 inline-flex items-center gap-1 text-sm text-muted hover:text-foreground">
+      <Link href={backHref} className="mb-3 inline-flex items-center gap-1 text-sm text-muted hover:text-foreground">
         <ChevronLeftIcon className="size-4" /> Scan lagi
       </Link>
       {children}

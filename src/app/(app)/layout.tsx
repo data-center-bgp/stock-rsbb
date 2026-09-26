@@ -1,10 +1,11 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession, ROLE_LABELS } from "@/lib/session";
 import { formatLongDate } from "@/lib/dates";
 import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ClockIcon } from "@/components/icons";
-import { MobileNav, Sidebar } from "@/components/shell/nav";
+import { Sidebar } from "@/components/shell/nav";
 import { UserMenu } from "@/components/shell/UserMenu";
 import { cardClass } from "@/components/ui";
 
@@ -42,7 +43,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     );
   }
 
-  const isMaster = profile.role === "master";
   const roleDetail =
     profile.role === "staff" && profile.unit
       ? `${ROLE_LABELS.staff} · ${profile.unit.nama_gudang}`
@@ -50,13 +50,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex flex-1 bg-background lg:gap-4 lg:p-4 print:block print:p-0">
-      <Sidebar isMaster={isMaster} />
+      <Sidebar role={profile.role} />
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex h-16 items-center justify-between gap-4 border-b border-border px-4 lg:h-14 lg:px-1 print:hidden">
-          <div className="lg:hidden">
+          {/* Phones have no menu: the logo is the way back to the input home. */}
+          <Link href="/input" className="lg:hidden">
             <Logo />
-          </div>
+          </Link>
           <p className="hidden text-sm text-muted lg:block">{formatLongDate()}</p>
           <div className="flex items-center gap-2">
             <ThemeToggle />
@@ -64,10 +65,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </div>
         </header>
 
-        <main className="flex-1 px-4 pb-28 pt-6 lg:px-1 lg:pb-4 print:p-0">{children}</main>
+        <main className="flex-1 px-4 pb-10 pt-6 lg:px-1 lg:pb-4 print:p-0">{children}</main>
       </div>
-
-      <MobileNav isMaster={isMaster} />
     </div>
   );
 }

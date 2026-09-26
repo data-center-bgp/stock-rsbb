@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  BuildingIcon,
   LayoutDashboardIcon,
   PanelLeftCloseIcon,
   PanelLeftOpenIcon,
@@ -11,24 +12,29 @@ import {
   UsersIcon,
 } from "@/components/icons";
 import { LogoMark } from "@/components/Logo";
+import type { ProfileRole } from "@/lib/types";
 
-const BASE_ITEMS = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboardIcon },
-  { href: "/scan", label: "Scan QR", icon: ScanLineIcon },
-  { href: "/dashboard/labels", label: "Label QR", icon: QrCodeIcon },
-];
-
-const USERS_ITEM = { href: "/users", label: "Pengguna", icon: UsersIcon };
-
-// Only a convenience: /users itself and the database both check for master.
-function navItems(isMaster: boolean) {
-  return isMaster ? [...BASE_ITEMS, USERS_ITEM] : BASE_ITEMS;
+// Desktop sidebar only — phones get the input flow (/input) without a menu.
+// Master-only items are a convenience: those pages and the database both
+// check the role themselves.
+function navItems(role: ProfileRole) {
+  return [
+    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboardIcon },
+    { href: "/input", label: role === "manager" ? "Lihat Stok" : "Input Data", icon: ScanLineIcon },
+    { href: "/dashboard/labels", label: "Label QR", icon: QrCodeIcon },
+    ...(role === "master"
+      ? [
+          { href: "/users", label: "Pengguna", icon: UsersIcon },
+          { href: "/master-data", label: "Data Master", icon: BuildingIcon },
+        ]
+      : []),
+  ];
 }
 
 function isActive(pathname: string, href: string) {
   if (href === "/dashboard") return pathname === "/dashboard";
-  // An item page (/i/...) is where a scan lands, so it counts as "Scan QR".
-  if (href === "/scan") return pathname === "/scan" || pathname.startsWith("/i/");
+  // Scanning and the item page (/i/...) are steps of the input flow.
+  if (href === "/input") return ["/input", "/scan", "/i/"].some((p) => pathname.startsWith(p));
   return pathname.startsWith(href);
 }
 
@@ -47,7 +53,7 @@ function toggleSidebar() {
 // Collapsed/expanded is driven purely by a data attribute on <html> (see the
 // `sidebar-collapsed` variant), so there's no React state to mismatch with
 // the pre-paint script.
-export function Sidebar({ isMaster }: { isMaster: boolean }) {
+export function Sidebar({ role }: { role: ProfileRole }) {
   const pathname = usePathname();
 
   return (
@@ -71,7 +77,7 @@ export function Sidebar({ isMaster }: { isMaster: boolean }) {
       </div>
 
       <nav className="flex flex-col gap-1">
-        {navItems(isMaster).map(({ href, label, icon: Icon }) => {
+        {navItems(role).map(({ href, label, icon: Icon }) => {
           const active = isActive(pathname, href);
           return (
             <Link
@@ -92,38 +98,5 @@ export function Sidebar({ isMaster }: { isMaster: boolean }) {
         })}
       </nav>
     </aside>
-  );
-}
-
-export function MobileNav({ isMaster }: { isMaster: boolean }) {
-  const pathname = usePathname();
-  const items = navItems(isMaster);
-
-  return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden print:hidden">
-      <div className={`mx-auto grid max-w-md ${items.length === 4 ? "grid-cols-4" : "grid-cols-3"}`}>
-        {items.map(({ href, label, icon: Icon }) => {
-          const active = isActive(pathname, href);
-          const isScan = href === "/scan";
-          return (
-            <Link
-              key={href}
-              href={href}
-              aria-current={active ? "page" : undefined}
-              className={`flex flex-col items-center gap-1 py-2 text-[11px] font-medium ${active ? "text-primary" : "text-muted"}`}
-            >
-              {isScan ? (
-                <span className="-mt-5 grid size-12 place-items-center rounded-2xl bg-linear-to-b from-primary to-primary-strong text-primary-foreground shadow-[0_10px_24px_-8px_var(--primary)]">
-                  <Icon className="size-6" />
-                </span>
-              ) : (
-                <Icon className="size-5" />
-              )}
-              {label}
-            </Link>
-          );
-        })}
-      </div>
-    </nav>
   );
 }

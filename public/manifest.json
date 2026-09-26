@@ -2,7 +2,7 @@
   "name": "Stock RSBB",
   "short_name": "Stock RSBB",
   "description": "Aplikasi manajemen stok dan stock opname",
-  "start_url": "/",
+  "start_url": "/input",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0f172a",

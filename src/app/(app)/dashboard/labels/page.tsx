@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { PrintButton } from "@/components/PrintButton";
+import { DesktopOnly } from "@/components/shell/DesktopOnly";
 import { QrLabelGrid, type QrLabel } from "@/components/QrLabelGrid";
 import { ArrowRightIcon, ChevronLeftIcon, QrCodeIcon } from "@/components/icons";
 import { Alert, PageHeader, cardClass } from "@/components/ui";
@@ -28,10 +29,10 @@ export default async function LabelsPage({ searchParams }: { searchParams: Promi
     const units = (data ?? []) as unknown as UnitRow[];
 
     return (
-      <>
-        <PageHeader title="Label QR" description="Pilih unit untuk mencetak label QR item-itemnya." />
+      <DesktopOnly>
+        <PageHeader title="Label QR" description="Pilih inventori untuk mencetak label QR item-itemnya." />
 
-        {error && <Alert tone="danger">Gagal memuat unit: {error.message}</Alert>}
+        {error && <Alert tone="danger">Gagal memuat inventori: {error.message}</Alert>}
 
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {units.map((u) => (
@@ -53,9 +54,9 @@ export default async function LabelsPage({ searchParams }: { searchParams: Promi
         </div>
 
         {!units.length && !error && (
-          <p className={`${cardClass} p-10 text-center text-sm text-muted`}>Belum ada unit — impor data terlebih dahulu.</p>
+          <p className={`${cardClass} p-10 text-center text-sm text-muted`}>Belum ada inventori — impor data terlebih dahulu.</p>
         )}
-      </>
+      </DesktopOnly>
     );
   }
 
@@ -78,10 +79,10 @@ export default async function LabelsPage({ searchParams }: { searchParams: Promi
   }));
 
   return (
-    <>
+    <DesktopOnly>
       <div className="print:hidden">
         <Link href="/dashboard/labels" className="mb-3 inline-flex items-center gap-1 text-sm text-muted hover:text-foreground">
-          <ChevronLeftIcon className="size-4" /> Semua unit
+          <ChevronLeftIcon className="size-4" /> Semua inventori
         </Link>
         <PageHeader
           title={unitRow?.nama_gudang ?? "Label QR"}
@@ -95,8 +96,8 @@ export default async function LabelsPage({ searchParams }: { searchParams: Promi
       {labels.length > 0 ? (
         <QrLabelGrid labels={labels} />
       ) : (
-        !error && <p className={`${cardClass} p-10 text-center text-sm text-muted`}>Unit ini belum punya item.</p>
+        !error && <p className={`${cardClass} p-10 text-center text-sm text-muted`}>Inventori ini belum punya item.</p>
       )}
-    </>
+    </DesktopOnly>
   );
 }

@@ -62,12 +62,12 @@ export function InventoryFilters({ units }: { units: Unit[] }) {
       </select>
       {units.length > 1 && (
         <select
-          aria-label="Filter unit"
+          aria-label="Filter inventori"
           value={searchParams.get("unit") ?? ""}
           onChange={(e) => update({ unit: e.target.value })}
           className={selectClass}
         >
-          <option value="">Semua unit</option>
+          <option value="">Semua inventori</option>
           {units.map((u) => (
             <option key={u.id_gudang} value={u.id_gudang}>
               {u.nama_gudang}

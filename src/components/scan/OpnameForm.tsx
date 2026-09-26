@@ -1,13 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { ensureOpnameSession } from "@/lib/opname";
-import { SpinnerIcon } from "@/components/icons";
+import { ScanLineIcon, SpinnerIcon } from "@/components/icons";
 import { Alert, fieldClass, primaryButtonClass } from "@/components/ui";
 import type { InventoryDetail } from "@/lib/types";
 
-export function OpnameForm({ inventory }: { inventory: InventoryDetail }) {
+export function OpnameForm({ inventory, nextScanHref }: { inventory: InventoryDetail; nextScanHref: string }) {
   const [countedQty, setCountedQty] = useState("");
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "queued" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -56,11 +57,22 @@ export function OpnameForm({ inventory }: { inventory: InventoryDetail }) {
 
     setStatus("error");
     setErrorMessage(
-      "Tidak ada koneksi. Sesi stock opname untuk unit ini perlu dibuka saat online terlebih dahulu.",
+      "Tidak ada koneksi. Sesi stock opname untuk inventori ini perlu dibuka saat online terlebih dahulu.",
     );
   }
 
   const variance = countedQty === "" ? null : Number(countedQty) - inventory.current_qty;
+
+  if (status === "saved") {
+    return (
+      <div className="flex flex-col gap-4">
+        <Alert tone="success">Hasil hitung tersimpan.</Alert>
+        <Link href={nextScanHref} className={`${primaryButtonClass} w-full`}>
+          <ScanLineIcon className="size-4" /> Scan item berikutnya
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
@@ -100,7 +112,6 @@ export function OpnameForm({ inventory }: { inventory: InventoryDetail }) {
         {status === "saving" ? "Menyimpan..." : "Simpan hasil hitung"}
       </button>
 
-      {status === "saved" && <Alert tone="success">Hasil hitung tersimpan.</Alert>}
       {status === "error" && errorMessage && <Alert tone="danger">{errorMessage}</Alert>}
     </form>
   );

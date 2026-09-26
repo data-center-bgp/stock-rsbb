@@ -35,24 +35,33 @@ export type Inventory = {
   current_qty: number;
 };
 
+// Pharmacy "Mutasi" types (0006_mutasi.sql).
 export type StockTransactionType =
-  | "in_procurement"
-  | "in_return"
-  | "in_transfer"
-  | "out_transfer"
-  | "out_other";
+  | "in_receipt" // Penerimaan Barang: distributor, batch, expiry
+  | "in_unit_return" // Retur dari Unit: hospital unit
+  | "out_unit_delivery" // Pengiriman ke Unit: hospital unit
+  | "out_distributor_return" // Retur ke Distributor: distributor, batch, expiry
+  | "out_disposal"; // Pemusnahan: date + quantity only
 
 export type StockTransaction = {
   id_transaction: string;
   id_inventory: number;
   type: StockTransactionType;
   quantity: number;
+  transaction_date: string; // YYYY-MM-DD, the date staff enter
+  id_distributor: number | null;
+  id_hospital_unit: number | null;
+  batch_number: string | null;
+  expiry_date: string | null;
   transfer_group_id: string | null;
   note: string | null;
   created_by: string;
   created_at: string;
   synced_offline: boolean;
 };
+
+export type Distributor = { id_distributor: number; nama: string; is_active: boolean };
+export type HospitalUnit = { id_hospital_unit: number; nama: string; is_active: boolean };
 
 export type OpnameSessionStatus = "in_progress" | "completed";
 

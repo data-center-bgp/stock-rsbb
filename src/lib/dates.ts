@@ -1,17 +1,12 @@
 // One place for the app's time zone, so "today" (dashboard stats, the day's
-// opname session) means the same calendar day for everyone regardless of
-// where the server runs. Indonesia has no DST, so the offset is fixed.
+// opname session, Mutasi dates) means the same calendar day for everyone
+// regardless of where the server runs. The database uses the same zone for
+// stock_transaction.transaction_date's default (0006_mutasi.sql).
 export const APP_TIME_ZONE = "Asia/Jakarta";
-const APP_UTC_OFFSET = "+07:00";
 
 /** Today's date in the app time zone, as YYYY-MM-DD. */
 export function todayInAppZone(date = new Date()) {
   return new Intl.DateTimeFormat("en-CA", { timeZone: APP_TIME_ZONE }).format(date);
-}
-
-/** ISO timestamp for 00:00 today in the app time zone, for `created_at >=` filters. */
-export function startOfTodayInAppZone() {
-  return `${todayInAppZone()}T00:00:00${APP_UTC_OFFSET}`;
 }
 
 export function formatLongDate(date = new Date()) {

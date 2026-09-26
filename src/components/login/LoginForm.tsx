@@ -34,7 +34,8 @@ export function LoginForm() {
         setLoading(false);
         return;
       }
-      router.push("/dashboard");
+      // Phones are for data input; the dashboard is a desktop page.
+      router.push(matchMedia("(min-width: 1024px)").matches ? "/dashboard" : "/input");
     } catch (err) {
       setError(toFriendlyError(err instanceof Error ? err.message : "Terjadi kesalahan."));
       setLoading(false);
