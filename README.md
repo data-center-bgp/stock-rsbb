@@ -28,6 +28,10 @@ https://claude.ai/artifact/KnPDEWNnH3jULDxhCey3iZ
    - Repeat per unit file; both are safe to re-run on the same file.
    - `npm run verify:import` afterward prints row counts per table plus one sample row, either way.
 
+## Deploying
+
+Production runs on the company VPS (Node + PM2 behind Nginx, HTTPS via Let's Encrypt) at https://stock-rsbb.barokahperkasagroup.com. Step-by-step setup and updates: [DEPLOY.md](DEPLOY.md).
+
 ## Structure
 
 - `src/app/login` — email/password login (accounts are created by an admin in Supabase; no sign-up). Redirects to the dashboard if already signed in.
@@ -60,7 +64,6 @@ https://claude.ai/artifact/KnPDEWNnH3jULDxhCey3iZ
 
 ## Not done yet (scaffold, not a finished app)
 
-- No PWA icons (`public/icon-192.png` / `icon-512.png` referenced in `public/manifest.json` don't exist yet).
 - Stock-opname offline queueing is intentionally not implemented: starting a unit's opname session requires connectivity once per day (see the comment in `src/lib/opname.ts`); only daily stock transactions queue fully offline.
 - No roles/approval workflow (v1 decision — any authenticated user can post directly).
 - No user-signup UI — test users are created directly in the Supabase dashboard for now.
