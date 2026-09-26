@@ -8,7 +8,7 @@ import { MutasiForm } from "@/components/scan/MutasiForm";
 import { OpnameForm } from "@/components/scan/OpnameForm";
 import { ChevronLeftIcon, EyeIcon, HistoryIcon, MapPinIcon, PackageXIcon, ScanLineIcon, SpinnerIcon } from "@/components/icons";
 import { StockStatus, cardClass, primaryButtonClass } from "@/components/ui";
-import { scanHref, type InputMode } from "@/lib/input-mode";
+import { modeHome, scanHref, type InputMode } from "@/lib/input-mode";
 import type { InventoryDetail } from "@/lib/types";
 
 const numberFormat = new Intl.NumberFormat("id-ID");
@@ -28,8 +28,13 @@ export function ItemScreen({
   const [inventory, setInventory] = useState<InventoryDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
-  const [mode, setMode] = useState<InputMode>(initialMode ?? "mutasi");
-  const backHref = canInput ? scanHref(mode) : scanHref(null);
+  const [chosenMode, setMode] = useState<InputMode>(initialMode ?? "mutasi");
+  // Only the unit's inventory: never counted before (first count = starting stock).
+  const [firstCount, setFirstCount] = useState(false);
+  // A hospital unit's inventory only does Stock Opname for now.
+  const isUnit = inventory?.unit.kind === "unit";
+  const mode: InputMode = isUnit ? "opname" : chosenMode;
+  const backHref = canInput ? modeHome(isUnit ? "opname" : initialMode ?? mode) : scanHref(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -43,13 +48,20 @@ export function ItemScreen({
         const { data } = await supabase
           .from("inventory")
           .select(
-            "id_inventory, id_barang, id_gudang, id_lokasi, qr_token, harga_pokok_jual, harga_pokok, quantity_awal, current_qty, item:id_barang(nama, satuan_jual), unit:id_gudang(nama_gudang), location:id_lokasi(nama_lokasi)",
+            "id_inventory, id_barang, id_gudang, id_lokasi, qr_token, harga_pokok_jual, harga_pokok, quantity_awal, current_qty, item:id_barang(nama, satuan_jual), unit:id_gudang(nama_gudang, kind), location:id_lokasi(nama_lokasi)",
           )
           .eq("qr_token", token)
           .maybeSingle();
 
         if (data) {
           const detail = data as unknown as InventoryDetail;
+          if (detail.unit.kind === "unit") {
+            const { count } = await supabase
+              .from("opname_count")
+              .select("id_opname_count", { count: "exact", head: true })
+              .eq("id_inventory", detail.id_inventory);
+            if (!cancelled) setFirstCount(count === 0);
+          }
           if (!cancelled) setInventory(detail);
           await offlineDb.inventoryCache.put(detail);
           if (!cancelled) setLoading(false);
@@ -78,6 +90,13 @@ export function ItemScreen({
   // Reflect a saved transaction immediately (the database trigger applies the same delta).
   function applyDelta(delta: number) {
     setInventory((prev) => (prev ? { ...prev, current_qty: prev.current_qty + delta } : prev));
+  }
+
+  // In a unit, the stock becomes what was just counted (a database trigger does the same).
+  function applyCount(counted: number) {
+    if (!isUnit) return;
+    setFirstCount(false);
+    setInventory((prev) => (prev ? { ...prev, current_qty: counted } : prev));
   }
 
   if (loading) {
@@ -121,7 +140,7 @@ export function ItemScreen({
           {inventory.location.nama_lokasi} · {inventory.unit.nama_gudang}
         </p>
         <div className="mt-4 rounded-xl bg-surface-muted px-4 py-3">
-          <p className="text-xs text-muted">Stok sistem</p>
+          <p className="text-xs text-muted">{isUnit ? "Stok unit (hitungan terakhir)" : "Stok sistem"}</p>
           <p className="text-2xl font-semibold tracking-tight tabular-nums">
             {numberFormat.format(inventory.current_qty)}{" "}
             <span className="text-sm font-normal text-muted">{inventory.item.satuan_jual}</span>
@@ -142,20 +161,24 @@ export function ItemScreen({
         </div>
       ) : (
         <>
-          <div className="my-4 grid grid-cols-2 gap-1 rounded-xl border border-border bg-surface-muted p-1" role="tablist">
-            <ModeButton active={mode === "mutasi"} onClick={() => setMode("mutasi")}>
-              Mutasi
-            </ModeButton>
-            <ModeButton active={mode === "opname"} onClick={() => setMode("opname")}>
-              Stock Opname
-            </ModeButton>
-          </div>
+          {isUnit ? (
+            <h2 className="mb-3 mt-5 text-sm font-semibold text-muted">Stock Opname</h2>
+          ) : (
+            <div className="my-4 grid grid-cols-2 gap-1 rounded-xl border border-border bg-surface-muted p-1" role="tablist">
+              <ModeButton active={mode === "mutasi"} onClick={() => setMode("mutasi")}>
+                Mutasi
+              </ModeButton>
+              <ModeButton active={mode === "opname"} onClick={() => setMode("opname")}>
+                Stock Opname
+              </ModeButton>
+            </div>
+          )}
 
           <div className={`${cardClass} p-5`}>
             {mode === "mutasi" ? (
               <MutasiForm inventory={inventory} nextScanHref={scanHref("mutasi")} onSaved={applyDelta} />
             ) : (
-              <OpnameForm inventory={inventory} nextScanHref={scanHref("opname")} />
+              <OpnameForm inventory={inventory} isUnit={isUnit} firstCount={firstCount} onSaved={applyCount} />
             )}
           </div>
         </>
@@ -168,7 +191,7 @@ function PageShell({ backHref, children }: { backHref: string; children: React.R
   return (
     <div className="mx-auto w-full max-w-lg">
       <Link href={backHref} className="mb-3 inline-flex items-center gap-1 text-sm text-muted hover:text-foreground">
-        <ChevronLeftIcon className="size-4" /> Scan lagi
+        <ChevronLeftIcon className="size-4" /> Kembali
       </Link>
       {children}
     </div>

@@ -1,12 +1,12 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
-import type { ProfileRole } from "@/lib/types";
+import type { ProfileRole, UnitKind } from "@/lib/types";
 
 export type CurrentProfile = {
   full_name: string | null;
   role: ProfileRole | null;
   id_gudang: number | null;
-  unit: { nama_gudang: string } | null;
+  unit: { nama_gudang: string; kind: UnitKind } | null;
 };
 
 // One auth + profile lookup per request, shared by the (app) layout and the
@@ -21,7 +21,7 @@ export const getSession = cache(async () => {
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("full_name, role, id_gudang, unit:id_gudang(nama_gudang)")
+    .select("full_name, role, id_gudang, unit:id_gudang(nama_gudang, kind)")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -33,6 +33,11 @@ export const getSession = cache(async () => {
 
   return { supabase, user, profile: (data as unknown as CurrentProfile | null) ?? null };
 });
+
+/** Staff of a hospital unit's inventory: Stock Opname only for now. */
+export function isUnitStaff(profile: CurrentProfile | null) {
+  return profile?.role === "staff" && profile.unit?.kind === "unit";
+}
 
 export const ROLE_LABELS: Record<ProfileRole, string> = {
   master: "Master",

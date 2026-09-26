@@ -37,8 +37,8 @@ function navItems(role: ProfileRole) {
 
 function isActive(pathname: string, href: string) {
   if (href === "/dashboard") return pathname === "/dashboard";
-  // Scanning and the item page (/i/...) are steps of the input flow.
-  if (href === "/input") return ["/input", "/scan", "/i/"].some((p) => pathname.startsWith(p));
+  // Scanning, the opname start page and the item page (/i/...) are steps of the input flow.
+  if (href === "/input") return ["/input", "/scan", "/opname", "/i/"].some((p) => pathname.startsWith(p));
   return pathname.startsWith(href);
 }
 

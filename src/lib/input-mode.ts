@@ -14,3 +14,11 @@ export function parseInputMode(value: string | string[] | undefined): InputMode 
 export function scanHref(mode: InputMode | null) {
   return mode ? `/scan?mode=${mode}` : "/scan";
 }
+
+// Stock Opname starts here (scan or search), not straight at the scanner.
+export const OPNAME_HOME = "/opname";
+
+/** Where each mode starts: the scanner for Mutasi, the scan-or-search page for Opname. */
+export function modeHome(mode: InputMode | null) {
+  return mode === "opname" ? OPNAME_HOME : scanHref(mode);
+}

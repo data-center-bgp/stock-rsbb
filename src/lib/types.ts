@@ -12,9 +12,14 @@ export type Item = {
   satuan_jual: string;
 };
 
+// farmasi: pharmacy inventory (Mutasi + Opname). unit: a hospital unit's own
+// stock, Opname only for now (0010_unit_inventories.sql).
+export type UnitKind = "farmasi" | "unit";
+
 export type Unit = {
   id_gudang: number;
   nama_gudang: string;
+  kind: UnitKind;
 };
 
 export type Location = {
@@ -103,6 +108,7 @@ export type Profile = {
 // Item + Inventory + Unit + Location joined — what the /i/[token] scan screen shows.
 export type InventoryDetail = Inventory & {
   item: Pick<Item, "nama" | "satuan_jual">;
-  unit: Pick<Unit, "nama_gudang">;
+  // kind is optional: items cached offline before 0010 don't have it (= farmasi).
+  unit: Pick<Unit, "nama_gudang"> & { kind?: UnitKind };
   location: Pick<Location, "nama_lokasi">;
 };

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { getSession } from "@/lib/session";
-import { scanHref } from "@/lib/input-mode";
+import { getSession, isUnitStaff } from "@/lib/session";
+import { OPNAME_HOME, scanHref } from "@/lib/input-mode";
 import { ArrowLeftRightIcon, ArrowRightIcon, ClipboardCheckIcon, EyeIcon, HistoryIcon } from "@/components/icons";
 import { PageHeader, cardClass } from "@/components/ui";
 
@@ -40,6 +40,8 @@ export default async function InputPage() {
   const { profile } = await getSession();
   const canInput = profile?.role === "master" || profile?.role === "staff";
   const inventoryName = profile?.role === "staff" ? profile.unit?.nama_gudang : null;
+  // Hospital units only do Stock Opname for now.
+  const unitStaff = isUnitStaff(profile);
 
   return (
     <div className="mx-auto w-full max-w-lg">
@@ -55,19 +57,25 @@ export default async function InputPage() {
       <div className="flex flex-col gap-3">
         {canInput ? (
           <>
+            {!unitStaff && (
+              <ModeCard
+                href={scanHref("mutasi")}
+                icon={<ArrowLeftRightIcon className="size-7" />}
+                tone="bg-primary/12 text-primary"
+                title="Mutasi"
+                description="Catat barang masuk (penerimaan, retur dari unit) dan keluar (pengiriman, retur, pemusnahan)."
+              />
+            )}
             <ModeCard
-              href={scanHref("mutasi")}
-              icon={<ArrowLeftRightIcon className="size-7" />}
-              tone="bg-primary/12 text-primary"
-              title="Mutasi"
-              description="Catat barang masuk (penerimaan, retur dari unit) dan keluar (pengiriman, retur, pemusnahan)."
-            />
-            <ModeCard
-              href={scanHref("opname")}
+              href={OPNAME_HOME}
               icon={<ClipboardCheckIcon className="size-7" />}
               tone="bg-amber-500/15 text-amber-600 dark:text-amber-400"
               title="Stock Opname"
-              description="Hitung stok fisik dan catat selisihnya dengan stok sistem."
+              description={
+                unitStaff
+                  ? "Hitung stok fisik di unit: scan label atau cari nama item."
+                  : "Hitung stok fisik dan catat selisihnya dengan stok sistem."
+              }
             />
           </>
         ) : (

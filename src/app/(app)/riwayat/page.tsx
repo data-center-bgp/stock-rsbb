@@ -39,7 +39,7 @@ type InventoryHeader = {
   qr_token: string;
   current_qty: number;
   item: { nama: string; satuan_jual: string };
-  unit: { nama_gudang: string } | null;
+  unit: { nama_gudang: string; kind: string } | null;
   location: { nama_lokasi: string } | null;
 };
 
@@ -64,7 +64,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
       ? supabase
           .from("inventory")
           .select(
-            "qr_token, current_qty, item:id_barang(nama, satuan_jual), unit:id_gudang(nama_gudang), location:id_lokasi(nama_lokasi)",
+            "qr_token, current_qty, item:id_barang(nama, satuan_jual), unit:id_gudang(nama_gudang, kind), location:id_lokasi(nama_lokasi)",
           )
           .eq("id_inventory", filters.inv)
           .maybeSingle()
@@ -99,7 +99,8 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
                 <span className="font-medium text-foreground">{item.item.nama}</span>
                 <span className="mt-1 flex flex-wrap items-center gap-x-1.5">
                   <MapPinIcon className="size-3.5 shrink-0" />
-                  {item.location?.nama_lokasi} · {item.unit?.nama_gudang} · Stok sistem{" "}
+                  {item.location?.nama_lokasi} · {item.unit?.nama_gudang} ·{" "}
+                  {item.unit?.kind === "unit" ? "Stok unit" : "Stok sistem"}{" "}
                   {numberFormat.format(item.current_qty)} {item.item.satuan_jual}
                 </span>
                 <Link href="/riwayat" className="mt-1 inline-block font-medium text-primary hover:underline">

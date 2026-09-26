@@ -15,7 +15,12 @@ export type ManagedUser = {
   id_gudang: number | null;
 };
 
-type Unit = { id_gudang: number; nama_gudang: string };
+type Unit = { id_gudang: number; nama_gudang: string; kind: string };
+
+const UNIT_GROUPS = [
+  { kind: "farmasi", label: "Farmasi" },
+  { kind: "unit", label: "Unit (stock opname)" },
+];
 
 const ROLE_OPTIONS: { value: ProfileRole | ""; label: string }[] = [
   { value: "", label: "Belum disetujui" },
@@ -107,10 +112,16 @@ export function UserAccessRow({ user, units, isSelf }: { user: ManagedUser; unit
           className={selectClass}
         >
           <option value="">{role === "staff" ? "Pilih inventori..." : "Semua inventori"}</option>
-          {units.map((u) => (
-            <option key={u.id_gudang} value={u.id_gudang}>
-              {u.nama_gudang}
-            </option>
+          {UNIT_GROUPS.map((g) => (
+            <optgroup key={g.kind} label={g.label}>
+              {units
+                .filter((u) => u.kind === g.kind)
+                .map((u) => (
+                  <option key={u.id_gudang} value={u.id_gudang}>
+                    {u.nama_gudang}
+                  </option>
+                ))}
+            </optgroup>
           ))}
         </select>
 

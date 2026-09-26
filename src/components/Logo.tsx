@@ -16,7 +16,9 @@ export function LogoMark({ className = "h-8", height = 32 }: { className?: strin
       height={height}
       width={Math.round((height * rsbbMark.width) / rsbbMark.height)}
       priority
-      className={`w-auto shrink-0 ${className}`}
+      // Height comes from className; keep the width proportional.
+      style={{ width: "auto" }}
+      className={`shrink-0 ${className}`}
     />
   );
 }
@@ -30,7 +32,8 @@ export function FullLogo({ className = "w-56", width = 224 }: { className?: stri
       width={width}
       height={Math.round((width * rsbbLogo.height) / rsbbLogo.width)}
       priority
-      className={`h-auto ${className}`}
+      style={{ height: "auto" }}
+      className={className}
     />
   );
 }

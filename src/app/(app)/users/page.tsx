@@ -15,7 +15,7 @@ export default async function UsersPage() {
 
   const [{ data, error }, { data: units }] = await Promise.all([
     supabase.from("profiles").select("id, email, full_name, role, id_gudang").order("created_at"),
-    supabase.from("unit").select("id_gudang, nama_gudang").order("nama_gudang"),
+    supabase.from("unit").select("id_gudang, nama_gudang, kind").order("nama_gudang"),
   ]);
 
   // Waiting-for-approval first, then everyone else in sign-up order.

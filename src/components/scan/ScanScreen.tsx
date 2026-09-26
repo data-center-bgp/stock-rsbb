@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { ChevronLeftIcon, SpinnerIcon } from "@/components/icons";
+import { ChevronLeftIcon, SearchIcon, SpinnerIcon } from "@/components/icons";
 import { PageHeader, cardClass } from "@/components/ui";
-import { INPUT_MODE_LABELS, type InputMode } from "@/lib/input-mode";
+import { INPUT_MODE_LABELS, OPNAME_HOME, type InputMode } from "@/lib/input-mode";
 
 // html5-qrcode touches browser-only APIs (camera, DOM) at module load time,
 // so this can't be part of the server-rendered bundle.
@@ -26,8 +26,11 @@ const TIPS = [
 export function ScanScreen({ mode }: { mode: InputMode | null }) {
   return (
     <div className="mx-auto w-full max-w-lg">
-      <Link href="/input" className="mb-3 inline-flex items-center gap-1 text-sm text-muted hover:text-foreground">
-        <ChevronLeftIcon className="size-4" /> {mode ? "Ganti mode" : "Kembali"}
+      <Link
+        href={mode === "opname" ? OPNAME_HOME : "/input"}
+        className="mb-3 inline-flex items-center gap-1 text-sm text-muted hover:text-foreground"
+      >
+        <ChevronLeftIcon className="size-4" /> {mode === "mutasi" ? "Ganti mode" : "Kembali"}
       </Link>
       <PageHeader
         title={mode ? `Scan · ${INPUT_MODE_LABELS[mode]}` : "Scan QR"}
@@ -43,6 +46,15 @@ export function ScanScreen({ mode }: { mode: InputMode | null }) {
       <div className={`${cardClass} p-4 sm:p-5`}>
         <QrScanner mode={mode} />
       </div>
+
+      {mode === "opname" && (
+        <Link
+          href={OPNAME_HOME}
+          className="mt-3 flex items-center justify-center gap-2 text-sm font-medium text-primary hover:underline"
+        >
+          <SearchIcon className="size-4" /> Item tanpa label? Cari berdasarkan nama
+        </Link>
+      )}
 
       <ul className="mt-4 flex flex-col gap-2 px-1 text-sm text-muted">
         {TIPS.map((tip) => (
