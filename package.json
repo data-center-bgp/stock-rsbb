@@ -16,6 +16,7 @@
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.2",
     "dexie": "^4.4.6",
+    "exceljs": "^4.4.0",
     "html5-qrcode": "^2.3.8",
     "next": "16.3.6",
     "qrcode": "^1.5.4",
@@ -32,7 +33,6 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.6",
-    "exceljs": "^4.4.0",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
     "typescript": "^5"

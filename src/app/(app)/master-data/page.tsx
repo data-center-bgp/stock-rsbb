@@ -13,18 +13,20 @@ export default async function MasterDataPage() {
   if (profile?.role !== "master") notFound();
 
   const [distributors, units] = await Promise.all([
-    supabase.from("distributor").select("id_distributor, nama, is_active").order("nama"),
-    supabase.from("hospital_unit").select("id_hospital_unit, nama, is_active").order("nama"),
+    supabase.from("distributor").select("id_distributor, nama, source_id, is_active").order("nama"),
+    supabase.from("hospital_unit").select("id_hospital_unit, nama, source_id, is_active").order("nama"),
   ]);
 
   const distributorEntries: LookupEntry[] = (distributors.data ?? []).map((d) => ({
     id: d.id_distributor,
     nama: d.nama,
+    source_id: d.source_id,
     is_active: d.is_active,
   }));
   const unitEntries: LookupEntry[] = (units.data ?? []).map((u) => ({
     id: u.id_hospital_unit,
     nama: u.nama,
+    source_id: u.source_id,
     is_active: u.is_active,
   }));
   const error = distributors.error ?? units.error;

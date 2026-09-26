@@ -4,9 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { SpinnerIcon } from "@/components/icons";
+import { LookupImport } from "@/components/master-data/LookupImport";
 import { Alert, cardClass, fieldClass, primaryButtonClass, secondaryButtonClass } from "@/components/ui";
 
-export type LookupEntry = { id: number; nama: string; is_active: boolean };
+export type LookupEntry = { id: number; nama: string; source_id: string | null; is_active: boolean };
 
 type Props = {
   table: "distributor" | "hospital_unit";
@@ -71,10 +72,15 @@ export function LookupManager({ table, idColumn, title, noun, entries }: Props) 
   return (
     <section className={cardClass}>
       <div className="border-b border-border p-5">
-        <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
-        <p className="mt-0.5 text-sm text-muted">
-          {activeCount} aktif{entries.length > activeCount ? ` · ${entries.length - activeCount} nonaktif` : ""}
-        </p>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
+            <p className="mt-0.5 text-sm text-muted">
+              {activeCount} aktif{entries.length > activeCount ? ` · ${entries.length - activeCount} nonaktif` : ""}
+            </p>
+          </div>
+          <LookupImport table={table} title={title} noun={noun} existing={entries} />
+        </div>
         <form onSubmit={add} className="mt-4 flex gap-2">
           <input
             value={newName}
@@ -115,6 +121,11 @@ export function LookupManager({ table, idColumn, title, noun, entries }: Props) 
               ) : (
                 <span className={`min-w-0 flex-1 truncate text-sm ${entry.is_active ? "" : "text-muted line-through"}`}>
                   {entry.nama}
+                </span>
+              )}
+              {entry.source_id && !editing && (
+                <span className="text-xs tabular-nums text-muted" title="ID di sistem RS">
+                  ID {entry.source_id}
                 </span>
               )}
               {!entry.is_active && !editing && (
