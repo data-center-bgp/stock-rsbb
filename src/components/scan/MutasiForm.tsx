@@ -7,25 +7,10 @@ import { offlineDb } from "@/lib/offline/db";
 import { loadLookups, type Lookups } from "@/lib/lookups";
 import { todayInAppZone } from "@/lib/dates";
 import { ScanLineIcon, SpinnerIcon } from "@/components/icons";
+import { SearchSelect } from "@/components/SearchSelect";
 import { Alert, fieldClass, inputClass, primaryButtonClass, secondaryButtonClass } from "@/components/ui";
+import { MUTASI_TYPES } from "@/lib/mutasi";
 import type { InventoryDetail, StockTransactionType } from "@/lib/types";
-
-type Needs = "distributor" | "unit" | "none";
-
-const TYPES: {
-  value: StockTransactionType;
-  direction: "in" | "out";
-  label: string;
-  needs: Needs;
-  dateLabel: string;
-  unitLabel?: string;
-}[] = [
-  { value: "in_receipt", direction: "in", label: "Penerimaan Barang", needs: "distributor", dateLabel: "Tanggal Penerimaan" },
-  { value: "in_unit_return", direction: "in", label: "Retur dari Unit", needs: "unit", dateLabel: "Tanggal Retur", unitLabel: "Unit Asal" },
-  { value: "out_unit_delivery", direction: "out", label: "Pengiriman ke Unit", needs: "unit", dateLabel: "Tanggal Pengiriman", unitLabel: "Unit Tujuan" },
-  { value: "out_distributor_return", direction: "out", label: "Retur ke Distributor", needs: "distributor", dateLabel: "Tanggal Retur" },
-  { value: "out_disposal", direction: "out", label: "Pemusnahan", needs: "none", dateLabel: "Tanggal Pemusnahan" },
-];
 
 // Type, date, distributor and unit carry over to the next scanned item
 // (receiving one delivery = many items from one distributor on one date).
@@ -42,7 +27,6 @@ function readLast(): Last | null {
 }
 
 const labelClass = "text-sm font-medium";
-const selectClass = `${inputClass} cursor-pointer pl-3.5 pr-8`;
 
 export function MutasiForm({
   inventory,
@@ -72,7 +56,7 @@ export function MutasiForm({
     loadLookups().then(setLookups);
   }, []);
 
-  const spec = TYPES.find((t) => t.value === type) ?? null;
+  const spec = MUTASI_TYPES.find((t) => t.value === type) ?? null;
   const unit = inventory.item.satuan_jual;
 
   function validate(qty: number): string | null {
@@ -180,7 +164,7 @@ export function MutasiForm({
         <fieldset key={direction}>
           <legend className="mb-2 text-sm font-medium">{direction === "in" ? "Barang Masuk" : "Barang Keluar"}</legend>
           <div className="grid grid-cols-2 gap-2">
-            {TYPES.filter((t) => t.direction === direction).map((t) => {
+            {MUTASI_TYPES.filter((t) => t.direction === direction).map((t) => {
               const selected = type === t.value;
               return (
                 <label
@@ -252,19 +236,13 @@ export function MutasiForm({
                 <label htmlFor="distributor" className={labelClass}>
                   Nama Distributor
                 </label>
-                <select
+                <SearchSelect
                   id="distributor"
                   value={distributorId}
-                  onChange={(e) => setDistributorId(e.target.value)}
-                  className={selectClass}
-                >
-                  <option value="">{lookups ? "Pilih distributor..." : "Memuat..."}</option>
-                  {lookups?.distributors.map((d) => (
-                    <option key={d.id_distributor} value={d.id_distributor}>
-                      {d.nama}
-                    </option>
-                  ))}
-                </select>
+                  onChange={setDistributorId}
+                  placeholder={lookups ? "Pilih distributor..." : "Memuat..."}
+                  options={(lookups?.distributors ?? []).map((d) => ({ value: String(d.id_distributor), label: d.nama }))}
+                />
                 {noDistributors && (
                   <p className="text-xs text-amber-700 dark:text-amber-400">
                     Belum ada data distributor. Minta master menambahkannya di Data Master.
@@ -305,14 +283,13 @@ export function MutasiForm({
               <label htmlFor="unit" className={labelClass}>
                 {spec.unitLabel}
               </label>
-              <select id="unit" value={unitId} onChange={(e) => setUnitId(e.target.value)} className={selectClass}>
-                <option value="">{lookups ? "Pilih unit..." : "Memuat..."}</option>
-                {lookups?.units.map((u) => (
-                  <option key={u.id_hospital_unit} value={u.id_hospital_unit}>
-                    {u.nama}
-                  </option>
-                ))}
-              </select>
+              <SearchSelect
+                id="unit"
+                value={unitId}
+                onChange={setUnitId}
+                placeholder={lookups ? "Pilih unit..." : "Memuat..."}
+                options={(lookups?.units ?? []).map((u) => ({ value: String(u.id_hospital_unit), label: u.nama }))}
+              />
               {noUnits && (
                 <p className="text-xs text-amber-700 dark:text-amber-400">
                   Belum ada data unit. Minta master menambahkannya di Data Master.

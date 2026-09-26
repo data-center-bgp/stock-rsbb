@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { getSession } from "@/lib/session";
 import { scanHref } from "@/lib/input-mode";
-import { ArrowLeftRightIcon, ArrowRightIcon, ClipboardCheckIcon, EyeIcon } from "@/components/icons";
+import { ArrowLeftRightIcon, ArrowRightIcon, ClipboardCheckIcon, EyeIcon, HistoryIcon } from "@/components/icons";
 import { PageHeader, cardClass } from "@/components/ui";
 
 export const metadata: Metadata = { title: "Input Data — Stock RSBB" };
@@ -79,6 +79,13 @@ export default async function InputPage() {
             description="Scan label item untuk melihat stoknya."
           />
         )}
+        <ModeCard
+          href="/riwayat"
+          icon={<HistoryIcon className="size-7" />}
+          tone="bg-surface-muted text-muted"
+          title="Riwayat"
+          description="Lihat mutasi dan stock opname yang sudah tercatat."
+        />
       </div>
     </div>
   );

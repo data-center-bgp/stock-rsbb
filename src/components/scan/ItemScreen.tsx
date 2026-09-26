@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { offlineDb } from "@/lib/offline/db";
 import { MutasiForm } from "@/components/scan/MutasiForm";
 import { OpnameForm } from "@/components/scan/OpnameForm";
-import { ChevronLeftIcon, EyeIcon, MapPinIcon, PackageXIcon, ScanLineIcon, SpinnerIcon } from "@/components/icons";
+import { ChevronLeftIcon, EyeIcon, HistoryIcon, MapPinIcon, PackageXIcon, ScanLineIcon, SpinnerIcon } from "@/components/icons";
 import { StockStatus, cardClass, primaryButtonClass } from "@/components/ui";
 import { scanHref, type InputMode } from "@/lib/input-mode";
 import type { InventoryDetail } from "@/lib/types";
@@ -127,6 +127,12 @@ export function ItemScreen({
             <span className="text-sm font-normal text-muted">{inventory.item.satuan_jual}</span>
           </p>
         </div>
+        <Link
+          href={`/riwayat?inv=${inventory.id_inventory}`}
+          className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+        >
+          <HistoryIcon className="size-4" /> Riwayat item ini
+        </Link>
       </div>
 
       {!canInput ? (

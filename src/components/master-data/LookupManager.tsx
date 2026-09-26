@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { SpinnerIcon } from "@/components/icons";
+import { SearchIcon, SpinnerIcon } from "@/components/icons";
 import { LookupImport } from "@/components/master-data/LookupImport";
 import { Alert, cardClass, fieldClass, primaryButtonClass, secondaryButtonClass } from "@/components/ui";
 
@@ -33,6 +33,7 @@ export function LookupManager({ table, idColumn, title, noun, entries }: Props) 
   const [editName, setEditName] = useState("");
   const [busy, setBusy] = useState<string | null>(null); // "add" or an entry id
   const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
 
   async function run(key: string, action: () => PromiseLike<{ error: { message: string; code?: string } | null }>) {
     setBusy(key);
@@ -68,6 +69,10 @@ export function LookupManager({ table, idColumn, title, noun, entries }: Props) 
   }
 
   const activeCount = entries.filter((e) => e.is_active).length;
+  const needle = search.trim().toLowerCase();
+  const shown = needle
+    ? entries.filter((e) => e.nama.toLowerCase().includes(needle) || e.source_id?.toLowerCase() === needle)
+    : entries;
 
   return (
     <section className={cardClass}>
@@ -93,6 +98,19 @@ export function LookupManager({ table, idColumn, title, noun, entries }: Props) 
             {busy === "add" ? <SpinnerIcon className="size-4" /> : "Tambah"}
           </button>
         </form>
+        {entries.length > 5 && (
+          <div className="relative mt-2">
+            <SearchIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={`Cari ${noun} (nama atau ID)...`}
+              aria-label={`Cari ${noun}`}
+              className={`${fieldClass} h-10 w-full pl-9 pr-3`}
+            />
+          </div>
+        )}
         {error && (
           <div className="mt-3">
             <Alert tone="danger">{error}</Alert>
@@ -101,7 +119,7 @@ export function LookupManager({ table, idColumn, title, noun, entries }: Props) 
       </div>
 
       <ul>
-        {entries.map((entry) => {
+        {shown.map((entry) => {
           const editing = editingId === entry.id;
           const rowBusy = busy === String(entry.id);
           return (
@@ -165,6 +183,9 @@ export function LookupManager({ table, idColumn, title, noun, entries }: Props) 
       </ul>
 
       {entries.length === 0 && <p className="px-5 py-10 text-center text-sm text-muted">Belum ada data.</p>}
+      {entries.length > 0 && shown.length === 0 && (
+        <p className="px-5 py-10 text-center text-sm text-muted">Tidak ada {noun} yang cocok.</p>
+      )}
     </section>
   );
 }

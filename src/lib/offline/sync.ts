@@ -20,6 +20,8 @@ export async function flushOfflineQueue(supabase: AppSupabaseClient) {
       id_hospital_unit: tx.id_hospital_unit,
       batch_number: tx.batch_number,
       expiry_date: tx.expiry_date,
+      // When it was recorded on the phone, not when the signal came back.
+      created_at: tx.created_at,
       synced_offline: true,
     });
     if (!error) {
@@ -39,6 +41,7 @@ export async function flushOfflineQueue(supabase: AppSupabaseClient) {
       id_inventory: count.id_inventory,
       system_qty_snapshot: count.system_qty_snapshot,
       counted_qty: count.counted_qty,
+      created_at: count.created_at,
     });
     if (!error) {
       await offlineDb.opnameCounts.delete(count.local_id);

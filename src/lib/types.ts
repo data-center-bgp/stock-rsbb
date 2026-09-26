@@ -81,6 +81,8 @@ export type OpnameCount = {
   system_qty_snapshot: number;
   counted_qty: number;
   selisih: number;
+  created_by: string;
+  created_at: string;
 };
 
 // master: everything + user management; manager: read-only, all units;

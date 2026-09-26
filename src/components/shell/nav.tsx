@@ -4,7 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   BuildingIcon,
+  HistoryIcon,
   LayoutDashboardIcon,
+  PackageIcon,
   PanelLeftCloseIcon,
   PanelLeftOpenIcon,
   QrCodeIcon,
@@ -20,7 +22,9 @@ import type { ProfileRole } from "@/lib/types";
 function navItems(role: ProfileRole) {
   return [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboardIcon },
+    { href: "/stok", label: "Data Stok", icon: PackageIcon },
     { href: "/input", label: role === "manager" ? "Lihat Stok" : "Input Data", icon: ScanLineIcon },
+    { href: "/riwayat", label: "Riwayat", icon: HistoryIcon },
     { href: "/dashboard/labels", label: "Label QR", icon: QrCodeIcon },
     ...(role === "master"
       ? [

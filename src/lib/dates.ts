@@ -29,3 +29,11 @@ export function formatDateTime(iso: string) {
     minute: "2-digit",
   }).format(new Date(iso));
 }
+
+/** A plain calendar date (YYYY-MM-DD, e.g. transaction_date) as "26 Sep 2026". */
+export function formatDate(ymd: string) {
+  // Read and printed in UTC so the day can't shift with the time zone.
+  return new Intl.DateTimeFormat("id-ID", { timeZone: "UTC", day: "numeric", month: "short", year: "numeric" }).format(
+    new Date(`${ymd}T00:00:00Z`),
+  );
+}
