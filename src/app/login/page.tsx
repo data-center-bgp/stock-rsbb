@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { Logo } from "@/components/Logo";
+import { FullLogo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LoginForm } from "@/components/login/LoginForm";
 import { LoginShowcase } from "@/components/login/LoginShowcase";
@@ -21,14 +21,15 @@ export default async function LoginPage() {
     <main className="flex flex-1 bg-background lg:p-4">
       <div className="mx-auto grid w-full max-w-[1440px] flex-1 lg:grid-cols-2 lg:gap-3 lg:rounded-[28px] lg:bg-surface lg:p-3 lg:shadow-[0_1px_2px_rgb(15_31_36/0.04),0_16px_48px_-16px_rgb(15_31_36/0.14)]">
         <section className="flex flex-col bg-surface px-5 py-6 sm:px-10 lg:rounded-2xl lg:border lg:border-border">
-          <header className="flex items-center justify-between">
-            <Logo />
+          {/* The hospital logo sits above the form instead of in the header. */}
+          <header className="flex items-center justify-end">
             <ThemeToggle />
           </header>
 
           <div className="flex flex-1 items-center justify-center py-12">
             <div className="w-full max-w-sm">
               <div className="mb-8 text-center">
+                <FullLogo className="mx-auto mb-8 w-44 sm:w-56" />
                 <h1 className="text-balance text-2xl font-semibold tracking-tight sm:text-[28px]">
                   Selamat datang di Stock RSBB
                 </h1>
@@ -41,7 +42,7 @@ export default async function LoginPage() {
           </div>
 
           <footer className="text-center text-xs text-muted">
-            © {new Date().getFullYear()} Stock RSBB. Hak cipta dilindungi.
+            © {new Date().getFullYear()} Stock RSBB · Rumah Sakit Balikpapan Baru
           </footer>
         </section>
 

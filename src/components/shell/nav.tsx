@@ -64,7 +64,8 @@ export function Sidebar({ role }: { role: ProfileRole }) {
     <aside className="sticky top-4 hidden h-[calc(100dvh-2rem)] w-64 shrink-0 flex-col rounded-2xl border border-border bg-surface p-4 transition-[width] duration-200 lg:flex sidebar-collapsed:w-[76px] sidebar-collapsed:px-3 print:hidden">
       <div className="flex items-center justify-between gap-2 pb-6 pl-2 pt-1 sidebar-collapsed:flex-col sidebar-collapsed:gap-3 sidebar-collapsed:pl-0">
         <span className="flex min-w-0 items-center gap-2.5 font-semibold tracking-tight">
-          <LogoMark />
+          {/* Collapsed, the rail is ~52px wide: the mark shrinks to fit. */}
+          <LogoMark className="h-7 sidebar-collapsed:h-5" height={28} />
           <span className="whitespace-nowrap sidebar-collapsed:hidden">Stock RSBB</span>
         </span>
         <button
