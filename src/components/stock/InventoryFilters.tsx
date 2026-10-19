@@ -9,7 +9,9 @@ type Unit = { id_gudang: number; nama_gudang: string };
 
 const selectClass = `${fieldClass} h-10 cursor-pointer pl-3 pr-8`;
 
-export function InventoryFilters({ units }: { units: Unit[] }) {
+// `inventori`: Per Inventori (pick an inventory). `semua`: Semua Stok (pick
+// whether the item has to be in a unit).
+export function InventoryFilters({ variant, units }: { variant: "inventori" | "semua"; units: Unit[] }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -60,7 +62,18 @@ export function InventoryFilters({ units }: { units: Unit[] }) {
         <option value="tersedia">Tersedia</option>
         <option value="habis">Habis</option>
       </select>
-      {units.length > 1 && (
+      {variant === "semua" && (
+        <select
+          aria-label="Filter sebaran"
+          value={searchParams.get("sebaran") ?? ""}
+          onChange={(e) => update({ sebaran: e.target.value })}
+          className={selectClass}
+        >
+          <option value="">Semua sebaran</option>
+          <option value="unit">Ada di unit</option>
+        </select>
+      )}
+      {variant === "inventori" && units.length > 1 && (
         <select
           aria-label="Filter inventori"
           value={searchParams.get("unit") ?? ""}

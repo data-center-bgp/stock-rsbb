@@ -74,7 +74,7 @@ export default async function DashboardPage() {
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <StatCard
-          href="/stok"
+          href="/stok?tab=inventori"
           icon={<PackageIcon className="size-5" />}
           tone="bg-primary/12 text-primary"
           title="Total Item"
@@ -82,7 +82,7 @@ export default async function DashboardPage() {
           value={totalRes.count}
         />
         <StatCard
-          href="/stok?status=habis"
+          href="/stok?tab=inventori&status=habis"
           icon={<PackageXIcon className="size-5" />}
           tone="bg-rose-500/12 text-rose-600 dark:text-rose-400"
           title="Stok Habis"
