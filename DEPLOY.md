@@ -1,7 +1,7 @@
 # Deploying Stock RSBB to the VPS
 
 Node + PM2 runs the app on `127.0.0.1:3010`; Nginx serves it publicly at
-**https://stock-rsbb.barokahperkasagroup.com** with a Let's Encrypt
+**https://stock-rsbb.barokahperkasagroup.tech** with a Let's Encrypt
 certificate. HTTPS is required: phones only allow the camera scanner and
 "Install app" on HTTPS.
 
@@ -19,7 +19,7 @@ In the company's DNS manager, add an **A record**:
 the VPS) before step 7, since Let's Encrypt needs it:
 
 ```bash
-nslookup stock-rsbb.barokahperkasagroup.com
+nslookup stock-rsbb.barokahperkasagroup.tech
 ```
 
 ## 1. Check the VPS
@@ -111,14 +111,14 @@ sudo nginx -t && sudo systemctl reload nginx
 
 If this Nginx uses `/etc/nginx/conf.d/` instead of `sites-available`, as other
 sites on it may, copy the file to `/etc/nginx/conf.d/stock-rsbb.conf` and skip
-the `ln` line. `http://stock-rsbb.barokahperkasagroup.com` should now show the
+the `ln` line. `http://stock-rsbb.barokahperkasagroup.tech` should now show the
 login page.
 
 ## 7. HTTPS
 
 ```bash
 sudo apt-get install -y certbot python3-certbot-nginx   # if certbot isn't installed yet
-sudo certbot --nginx -d stock-rsbb.barokahperkasagroup.com
+sudo certbot --nginx -d stock-rsbb.barokahperkasagroup.tech
 ```
 
 When asked, choose to **redirect** HTTP to HTTPS. Certbot renews the certificate
@@ -126,7 +126,7 @@ automatically.
 
 ## 8. Check it
 
-- Open https://stock-rsbb.barokahperkasagroup.com and log in. The dashboard,
+- Open https://stock-rsbb.barokahperkasagroup.tech and log in. The dashboard,
   Data Stok and Riwayat should load.
 - On a phone, check that scanning opens the camera, and that "Install app" /
   "Add to Home Screen" appears.

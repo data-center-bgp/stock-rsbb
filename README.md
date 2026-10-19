@@ -30,7 +30,7 @@ https://claude.ai/artifact/KnPDEWNnH3jULDxhCey3iZ
 
 ## Deploying
 
-Production runs on the company VPS (Node + PM2 behind Nginx, HTTPS via Let's Encrypt) at https://stock-rsbb.barokahperkasagroup.com. Step-by-step setup and updates: [DEPLOY.md](DEPLOY.md).
+Production runs on the company VPS (Node + PM2 behind Nginx, HTTPS via Let's Encrypt) at https://stock-rsbb.barokahperkasagroup.tech. Step-by-step setup and updates: [DEPLOY.md](DEPLOY.md).
 
 ## Structure
 
