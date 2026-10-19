@@ -49,15 +49,15 @@ free -h              # the build needs ~1.5 GB of free RAM (swap counts)
 The GitHub repo is public, so no key is needed:
 
 ```bash
-sudo mkdir -p /var/www/stock-rsbb
-sudo chown "$USER": /var/www/stock-rsbb
-git clone https://github.com/data-center-bgp/stock-rsbb.git /var/www/stock-rsbb
-cd /var/www/stock-rsbb
+sudo mkdir -p /opt/stock-rsbb
+sudo chown "$USER": /opt/stock-rsbb
+git clone https://github.com/data-center-bgp/stock-rsbb.git /opt/stock-rsbb
+cd /opt/stock-rsbb
 ```
 
 ## 3. Environment
 
-Create `/var/www/stock-rsbb/.env.local` with the **two** values from the
+Create `/opt/stock-rsbb/.env.local` with the **two** values from the
 `.env.local` on your PC. Use `nano .env.local`, paste, and save:
 
 ```
@@ -142,7 +142,7 @@ Don't change the project's Site URL either, since other company apps share it.
 After new commits are pushed to `main`:
 
 ```bash
-cd /var/www/stock-rsbb && ./deploy/update.sh
+cd /opt/stock-rsbb && ./deploy/update.sh
 ```
 
 This pulls, rebuilds and restarts. The app may error for a minute or two while
