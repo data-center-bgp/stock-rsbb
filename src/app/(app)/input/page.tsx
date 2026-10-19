@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { getSession, isUnitStaff } from "@/lib/session";
-import { OPNAME_HOME, scanHref } from "@/lib/input-mode";
+import { OPNAME_HOME, USAGE_HOME, scanHref } from "@/lib/input-mode";
 import { ArrowLeftRightIcon, ArrowRightIcon, ClipboardCheckIcon, EyeIcon, HistoryIcon } from "@/components/icons";
 import { PageHeader, cardClass } from "@/components/ui";
 
@@ -40,7 +40,7 @@ export default async function InputPage() {
   const { profile } = await getSession();
   const canInput = profile?.role === "master" || profile?.role === "staff";
   const inventoryName = profile?.role === "staff" ? profile.unit?.nama_gudang : null;
-  // Hospital units only do Stock Opname for now.
+  // Hospital units record Pemakaian where the pharmacy records Mutasi.
   const unitStaff = isUnitStaff(profile);
 
   return (
@@ -57,7 +57,15 @@ export default async function InputPage() {
       <div className="flex flex-col gap-3">
         {canInput ? (
           <>
-            {!unitStaff && (
+            {unitStaff ? (
+              <ModeCard
+                href={USAGE_HOME}
+                icon={<ArrowLeftRightIcon className="size-7" />}
+                tone="bg-primary/12 text-primary"
+                title="Pemakaian"
+                description="Catat barang yang dipakai di unit: scan label atau cari nama item."
+              />
+            ) : (
               <ModeCard
                 href={scanHref("mutasi")}
                 icon={<ArrowLeftRightIcon className="size-7" />}

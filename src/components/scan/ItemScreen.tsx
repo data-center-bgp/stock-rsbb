@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { offlineDb } from "@/lib/offline/db";
 import { MutasiForm } from "@/components/scan/MutasiForm";
 import { OpnameForm } from "@/components/scan/OpnameForm";
+import { UsageForm } from "@/components/scan/UsageForm";
 import { ChevronLeftIcon, EyeIcon, HistoryIcon, MapPinIcon, PackageXIcon, ScanLineIcon, SpinnerIcon } from "@/components/icons";
 import { StockStatus, cardClass, primaryButtonClass } from "@/components/ui";
 import { modeHome, scanHref, type InputMode } from "@/lib/input-mode";
@@ -29,12 +30,13 @@ export function ItemScreen({
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [chosenMode, setMode] = useState<InputMode>(initialMode ?? "mutasi");
-  // Only the unit's inventory: never counted before (first count = starting stock).
+  // Only the unit's inventory: nothing recorded for it yet (first count = starting stock).
   const [firstCount, setFirstCount] = useState(false);
-  // A hospital unit's inventory only does Stock Opname for now.
+  // A hospital unit's inventory records Pemakaian where the pharmacy's records Mutasi.
   const isUnit = inventory?.unit.kind === "unit";
-  const mode: InputMode = isUnit ? "opname" : chosenMode;
-  const backHref = canInput ? modeHome(isUnit ? "opname" : initialMode ?? mode) : scanHref(null);
+  const mode: InputMode = chosenMode === "opname" ? "opname" : isUnit ? "pemakaian" : "mutasi";
+  const startMode = initialMode ?? mode;
+  const backHref = canInput ? modeHome(isUnit && startMode === "mutasi" ? "pemakaian" : startMode) : scanHref(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -56,11 +58,17 @@ export function ItemScreen({
         if (data) {
           const detail = data as unknown as InventoryDetail;
           if (detail.unit.kind === "unit") {
-            const { count } = await supabase
-              .from("opname_count")
-              .select("id_opname_count", { count: "exact", head: true })
-              .eq("id_inventory", detail.id_inventory);
-            if (!cancelled) setFirstCount(count === 0);
+            const [counts, transactions] = await Promise.all([
+              supabase
+                .from("opname_count")
+                .select("id_opname_count", { count: "exact", head: true })
+                .eq("id_inventory", detail.id_inventory),
+              supabase
+                .from("stock_transaction")
+                .select("id_transaction", { count: "exact", head: true })
+                .eq("id_inventory", detail.id_inventory),
+            ]);
+            if (!cancelled) setFirstCount(counts.count === 0 && transactions.count === 0);
           }
           if (!cancelled) setInventory(detail);
           await offlineDb.inventoryCache.put(detail);
@@ -89,6 +97,7 @@ export function ItemScreen({
 
   // Reflect a saved transaction immediately (the database trigger applies the same delta).
   function applyDelta(delta: number) {
+    setFirstCount(false);
     setInventory((prev) => (prev ? { ...prev, current_qty: prev.current_qty + delta } : prev));
   }
 
@@ -140,7 +149,7 @@ export function ItemScreen({
           {inventory.location.nama_lokasi} · {inventory.unit.nama_gudang}
         </p>
         <div className="mt-4 rounded-xl bg-surface-muted px-4 py-3">
-          <p className="text-xs text-muted">{isUnit ? "Stok unit (hitungan terakhir)" : "Stok sistem"}</p>
+          <p className="text-xs text-muted">{isUnit ? "Stok unit" : "Stok sistem"}</p>
           <p className="text-2xl font-semibold tracking-tight tabular-nums">
             {numberFormat.format(inventory.current_qty)}{" "}
             <span className="text-sm font-normal text-muted">{inventory.item.satuan_jual}</span>
@@ -161,24 +170,22 @@ export function ItemScreen({
         </div>
       ) : (
         <>
-          {isUnit ? (
-            <h2 className="mb-3 mt-5 text-sm font-semibold text-muted">Stock Opname</h2>
-          ) : (
-            <div className="my-4 grid grid-cols-2 gap-1 rounded-xl border border-border bg-surface-muted p-1" role="tablist">
-              <ModeButton active={mode === "mutasi"} onClick={() => setMode("mutasi")}>
-                Mutasi
-              </ModeButton>
-              <ModeButton active={mode === "opname"} onClick={() => setMode("opname")}>
-                Stock Opname
-              </ModeButton>
-            </div>
-          )}
+          <div className="my-4 grid grid-cols-2 gap-1 rounded-xl border border-border bg-surface-muted p-1" role="tablist">
+            <ModeButton active={mode !== "opname"} onClick={() => setMode(isUnit ? "pemakaian" : "mutasi")}>
+              {isUnit ? "Pemakaian" : "Mutasi"}
+            </ModeButton>
+            <ModeButton active={mode === "opname"} onClick={() => setMode("opname")}>
+              Stock Opname
+            </ModeButton>
+          </div>
 
           <div className={`${cardClass} p-5`}>
-            {mode === "mutasi" ? (
-              <MutasiForm inventory={inventory} nextScanHref={scanHref("mutasi")} onSaved={applyDelta} />
-            ) : (
+            {mode === "opname" ? (
               <OpnameForm inventory={inventory} isUnit={isUnit} firstCount={firstCount} onSaved={applyCount} />
+            ) : isUnit ? (
+              <UsageForm inventory={inventory} onSaved={applyDelta} />
+            ) : (
+              <MutasiForm inventory={inventory} nextScanHref={scanHref("mutasi")} onSaved={applyDelta} />
             )}
           </div>
         </>

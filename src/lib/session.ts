@@ -34,7 +34,7 @@ export const getSession = cache(async () => {
   return { supabase, user, profile: (data as unknown as CurrentProfile | null) ?? null };
 });
 
-/** Staff of a hospital unit's inventory: Stock Opname only for now. */
+/** Staff of a hospital unit's inventory: Pemakaian and Stock Opname, no pharmacy Mutasi. */
 export function isUnitStaff(profile: CurrentProfile | null) {
   return profile?.role === "staff" && profile.unit?.kind === "unit";
 }

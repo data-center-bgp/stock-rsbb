@@ -3,7 +3,7 @@
 // shown as one timeline. RLS still applies through the view — staff get
 // their own inventory, managers and masters everything.
 
-import { MUTASI_TYPES, isMutasiType } from "@/lib/mutasi";
+import { ALL_MUTASI_TYPES, isMutasiType } from "@/lib/mutasi";
 import type { AppSupabaseClient } from "@/lib/supabase/types";
 import type { StockTransactionType } from "@/lib/types";
 
@@ -125,7 +125,7 @@ export async function loadHistory(
   if (f.inv) query = query.eq("id_inventory", f.inv);
   if (f.jenis === "masuk" || f.jenis === "keluar") {
     const direction = f.jenis === "masuk" ? "in" : "out";
-    query = query.in("mutasi_type", MUTASI_TYPES.filter((t) => t.direction === direction).map((t) => t.value));
+    query = query.in("mutasi_type", ALL_MUTASI_TYPES.filter((t) => t.direction === direction).map((t) => t.value));
   } else if (f.jenis) query = query.eq("mutasi_type", f.jenis);
   if (f.selisih === "ada") query = query.neq("selisih", 0);
   if (f.selisih === "sesuai") query = query.eq("selisih", 0);

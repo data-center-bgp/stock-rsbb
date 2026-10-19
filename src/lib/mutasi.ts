@@ -1,7 +1,8 @@
 import type { StockTransactionType } from "@/lib/types";
 
-// The five pharmacy Mutasi types (0006_mutasi.sql): what each one needs on
-// the form and how it's labelled — shared by the form and the history.
+// The five pharmacy Mutasi types (0006_mutasi.sql) and the three of a hospital
+// unit (0013_unit_usage.sql): what each one needs on the form and how it's
+// labelled — shared by the form and the history.
 
 export type MutasiNeeds = "distributor" | "unit" | "none";
 
@@ -22,10 +23,20 @@ export const MUTASI_TYPES: MutasiTypeSpec[] = [
   { value: "out_disposal", direction: "out", label: "Pemusnahan", needs: "none", dateLabel: "Tanggal Pemusnahan" },
 ];
 
+// Only Pemakaian is entered by hand; the other two follow the pharmacy's
+// Pengiriman ke Unit / Retur dari Unit.
+export const UNIT_MUTASI_TYPES: MutasiTypeSpec[] = [
+  { value: "in_pharmacy_delivery", direction: "in", label: "Penerimaan dari Farmasi", needs: "none", dateLabel: "Tanggal Penerimaan" },
+  { value: "out_usage", direction: "out", label: "Pemakaian", needs: "none", dateLabel: "Tanggal Pemakaian" },
+  { value: "out_pharmacy_return", direction: "out", label: "Retur ke Farmasi", needs: "none", dateLabel: "Tanggal Retur" },
+];
+
+export const ALL_MUTASI_TYPES: MutasiTypeSpec[] = [...MUTASI_TYPES, ...UNIT_MUTASI_TYPES];
+
 export function mutasiType(value: StockTransactionType): MutasiTypeSpec {
-  return MUTASI_TYPES.find((t) => t.value === value)!;
+  return ALL_MUTASI_TYPES.find((t) => t.value === value)!;
 }
 
 export function isMutasiType(value: string | undefined): value is StockTransactionType {
-  return MUTASI_TYPES.some((t) => t.value === value);
+  return ALL_MUTASI_TYPES.some((t) => t.value === value);
 }

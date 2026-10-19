@@ -4,7 +4,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { ChevronLeftIcon, SearchIcon, SpinnerIcon } from "@/components/icons";
 import { PageHeader, cardClass } from "@/components/ui";
-import { INPUT_MODE_LABELS, OPNAME_HOME, type InputMode } from "@/lib/input-mode";
+import { INPUT_MODE_LABELS, OPNAME_HOME, USAGE_HOME, type InputMode } from "@/lib/input-mode";
 
 // html5-qrcode touches browser-only APIs (camera, DOM) at module load time,
 // so this can't be part of the server-rendered bundle.
@@ -24,10 +24,12 @@ const TIPS = [
 ];
 
 export function ScanScreen({ mode }: { mode: InputMode | null }) {
+  // Opname and Pemakaian start at a scan-or-search page; Mutasi at the mode picker.
+  const searchHome = mode === "opname" ? OPNAME_HOME : mode === "pemakaian" ? USAGE_HOME : null;
   return (
     <div className="mx-auto w-full max-w-lg">
       <Link
-        href={mode === "opname" ? OPNAME_HOME : "/input"}
+        href={searchHome ?? "/input"}
         className="mb-3 inline-flex items-center gap-1 text-sm text-muted hover:text-foreground"
       >
         <ChevronLeftIcon className="size-4" /> {mode === "mutasi" ? "Ganti mode" : "Kembali"}
@@ -39,7 +41,9 @@ export function ScanScreen({ mode }: { mode: InputMode | null }) {
             ? "Pindai label item untuk mencatat barang masuk atau keluar."
             : mode === "opname"
               ? "Pindai label item untuk mencatat hasil hitung fisik."
-              : "Pindai label item untuk melihat stoknya."
+              : mode === "pemakaian"
+                ? "Pindai label item untuk mencatat pemakaian."
+                : "Pindai label item untuk melihat stoknya."
         }
       />
 
@@ -47,9 +51,9 @@ export function ScanScreen({ mode }: { mode: InputMode | null }) {
         <QrScanner mode={mode} />
       </div>
 
-      {mode === "opname" && (
+      {searchHome && (
         <Link
-          href={OPNAME_HOME}
+          href={searchHome}
           className="mt-3 flex items-center justify-center gap-2 text-sm font-medium text-primary hover:underline"
         >
           <SearchIcon className="size-4" /> Item tanpa label? Cari berdasarkan nama

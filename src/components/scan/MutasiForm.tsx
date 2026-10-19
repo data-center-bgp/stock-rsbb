@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
-import { offlineDb } from "@/lib/offline/db";
+import { saveStockTransaction } from "@/lib/save-transaction";
 import { loadLookups, type Lookups } from "@/lib/lookups";
 import { todayInAppZone } from "@/lib/dates";
 import { ScanLineIcon, SpinnerIcon } from "@/components/icons";
@@ -96,7 +95,6 @@ export function MutasiForm({
       batch_number: spec.needs === "distributor" ? batch.trim() : null,
       expiry_date: spec.needs === "distributor" ? expiry : null,
     };
-    const localId = crypto.randomUUID();
 
     try {
       sessionStorage.setItem(LAST_KEY, JSON.stringify({ type, date, distributorId, unitId } satisfies Last));
@@ -104,37 +102,17 @@ export function MutasiForm({
       // Private mode etc. — just no carry-over.
     }
 
-    if (navigator.onLine) {
-      const { error } = await createClient()
-        .from("stock_transaction")
-        .insert({ id_transaction: localId, ...record });
-      if (!error) {
-        setStatus("saved");
-        setQuantity("");
-        setBatch("");
-        setExpiry("");
-        onSaved?.(spec.direction === "in" ? qty : -qty);
-        return;
-      }
-      // Only a failed request (lost signal mid-save) belongs in the offline
-      // queue; a database rejection would just fail again on sync.
-      if (!/fetch|network/i.test(error.message)) {
-        setStatus("error");
-        setErrorMessage(`Gagal menyimpan: ${error.message}`);
-        return;
-      }
+    const result = await saveStockTransaction(record);
+    if (result.status === "error") {
+      setStatus("error");
+      setErrorMessage(result.message);
+      return;
     }
-
-    await offlineDb.stockTransactions.add({
-      local_id: localId,
-      ...record,
-      created_at: new Date().toISOString(),
-      synced: 0,
-    });
-    setStatus("queued");
+    setStatus(result.status);
     setQuantity("");
     setBatch("");
     setExpiry("");
+    if (result.status === "saved") onSaved?.(spec.direction === "in" ? qty : -qty);
   }
 
   if (status === "saved" || status === "queued") {

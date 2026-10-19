@@ -13,7 +13,8 @@ export type Item = {
 };
 
 // farmasi: pharmacy inventory (Mutasi + Opname). unit: a hospital unit's own
-// stock, Opname only for now (0010_unit_inventories.sql).
+// stock: Pemakaian + Opname, fed by the pharmacy's deliveries and returns
+// (0010_unit_inventories.sql, 0013_unit_usage.sql).
 export type UnitKind = "farmasi" | "unit";
 
 export type Unit = {
@@ -40,13 +41,18 @@ export type Inventory = {
   current_qty: number;
 };
 
-// Pharmacy "Mutasi" types (0006_mutasi.sql).
+// Pharmacy "Mutasi" types (0006_mutasi.sql), then the hospital units' own
+// (0012/0013): staff record Pemakaian; the other two are written by the
+// database when the pharmacy delivers to / takes a return from the unit.
 export type StockTransactionType =
   | "in_receipt" // Penerimaan Barang: distributor, batch, expiry
   | "in_unit_return" // Retur dari Unit: hospital unit
   | "out_unit_delivery" // Pengiriman ke Unit: hospital unit
   | "out_distributor_return" // Retur ke Distributor: distributor, batch, expiry
-  | "out_disposal"; // Pemusnahan: date + quantity only
+  | "out_disposal" // Pemusnahan: date + quantity only
+  | "out_usage" // Pemakaian (unit): date + quantity only
+  | "in_pharmacy_delivery" // Penerimaan dari Farmasi (unit), automatic
+  | "out_pharmacy_return"; // Retur ke Farmasi (unit), automatic
 
 export type StockTransaction = {
   id_transaction: string;

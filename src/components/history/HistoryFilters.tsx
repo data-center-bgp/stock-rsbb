@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ListFilterIcon, SearchIcon } from "@/components/icons";
 import { fieldClass, secondaryButtonClass } from "@/components/ui";
-import { MUTASI_TYPES } from "@/lib/mutasi";
+import { ALL_MUTASI_TYPES } from "@/lib/mutasi";
 import type { HistoryTab } from "@/lib/history";
 
 type Unit = { id_gudang: number; nama_gudang: string };
@@ -90,7 +90,7 @@ export function HistoryFilters({
             <option value="">Semua jenis</option>
             <option value="masuk">Semua barang masuk</option>
             <option value="keluar">Semua barang keluar</option>
-            {MUTASI_TYPES.map((t) => (
+            {ALL_MUTASI_TYPES.map((t) => (
               <option key={t.value} value={t.value}>
                 {t.label}
               </option>

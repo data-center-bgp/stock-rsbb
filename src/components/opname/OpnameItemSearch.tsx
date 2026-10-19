@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ArrowRightIcon, PackageIcon, SearchIcon, SpinnerIcon } from "@/components/icons";
 import { Alert, fieldClass } from "@/components/ui";
+import type { InputMode } from "@/lib/input-mode";
 import type { UnitKind } from "@/lib/types";
 
 type InventoryHit = {
@@ -17,24 +18,34 @@ type InventoryHit = {
 type CatalogHit = { id_barang: number; nama: string; satuan_jual: string };
 
 const LIMIT = 30;
-const QUERY_KEY = "opname:q"; // keep the search when coming back from an item
+const QUERY_KEYS = { opname: "opname:q", pemakaian: "pemakaian:q" }; // keep the search when coming back from an item
 const numberFormat = new Intl.NumberFormat("id-ID");
 const likePattern = (q: string) => `%${q.replace(/[\\%_]/g, "\\$&")}%`;
 
-function readQuery() {
+function readQuery(key: string) {
   try {
-    return sessionStorage.getItem(QUERY_KEY) ?? "";
+    return sessionStorage.getItem(key) ?? "";
   } catch {
     return "";
   }
 }
 
-// Find the item to count by name, instead of scanning its label. In a
-// hospital unit's inventory, items it doesn't have yet can be added from the
-// pharmacy catalog on the spot (units start empty).
-export function OpnameItemSearch({ gudang, kind }: { gudang: number; kind: UnitKind }) {
+// Find the item to count (or, in a unit, to record as used) by name, instead
+// of scanning its label. When counting in a hospital unit's inventory, items
+// it doesn't have yet can be added from the pharmacy catalog on the spot
+// (units start empty); Pemakaian only lists what the unit already holds.
+export function OpnameItemSearch({
+  gudang,
+  kind,
+  mode = "opname",
+}: {
+  gudang: number;
+  kind: UnitKind;
+  mode?: Extract<InputMode, "opname" | "pemakaian">;
+}) {
   const router = useRouter();
-  const [query, setQuery] = useState(readQuery);
+  const queryKey = QUERY_KEYS[mode];
+  const [query, setQuery] = useState(() => readQuery(queryKey));
   const [inventory, setInventory] = useState<InventoryHit[] | null>(null);
   const [catalog, setCatalog] = useState<CatalogHit[]>([]);
   const [loading, setLoading] = useState(false);
@@ -42,10 +53,11 @@ export function OpnameItemSearch({ gudang, kind }: { gudang: number; kind: UnitK
   const [error, setError] = useState<string | null>(null);
   const requestId = useRef(0);
   const isUnit = kind === "unit";
+  const canAdd = isUnit && mode === "opname";
 
   useEffect(() => {
     try {
-      sessionStorage.setItem(QUERY_KEY, query);
+      sessionStorage.setItem(queryKey, query);
     } catch {
       // private mode: the search just isn't remembered
     }
@@ -65,7 +77,7 @@ export function OpnameItemSearch({ gudang, kind }: { gudang: number; kind: UnitK
       if (q) invQuery = invQuery.ilike("item.nama", likePattern(q));
       const [inv, cat] = await Promise.all([
         invQuery,
-        isUnit && q.length >= 2
+        canAdd && q.length >= 2
           ? supabase.from("item").select("id_barang, nama, satuan_jual").ilike("nama", likePattern(q)).order("nama").limit(LIMIT)
           : Promise.resolve({ data: [] as CatalogHit[], error: null }),
       ]);
@@ -81,7 +93,7 @@ export function OpnameItemSearch({ gudang, kind }: { gudang: number; kind: UnitK
       setCatalog((cat.data as CatalogHit[]).filter((c) => !held.has(c.id_barang)));
     }, q ? 250 : 0);
     return () => clearTimeout(timer);
-  }, [query, gudang, isUnit]);
+  }, [query, queryKey, gudang, isUnit, canAdd]);
 
   async function addFromCatalog(item: CatalogHit) {
     setAdding(item.id_barang);
@@ -129,7 +141,7 @@ export function OpnameItemSearch({ gudang, kind }: { gudang: number; kind: UnitK
                 <li key={hit.id_inventory} className="border-b border-border last:border-b-0">
                   <button
                     type="button"
-                    onClick={() => router.push(`/i/${hit.qr_token}?mode=opname`)}
+                    onClick={() => router.push(`/i/${hit.qr_token}?mode=${mode}`)}
                     className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-surface-muted"
                   >
                     <span className="min-w-0 flex-1">
@@ -147,7 +159,9 @@ export function OpnameItemSearch({ gudang, kind }: { gudang: number; kind: UnitK
             <p className="px-1 text-sm text-muted">
               {q
                 ? "Tidak ada yang cocok."
-                : "Belum ada item di unit ini. Cari nama item untuk menambahkannya dari katalog."}
+                : canAdd
+                  ? "Belum ada item di unit ini. Cari nama item untuk menambahkannya dari katalog."
+                  : "Belum ada item di unit ini. Stok masuk saat farmasi mencatat pengiriman ke unit ini."}
             </p>
           )}
           {inventory.length === LIMIT && (
@@ -156,7 +170,7 @@ export function OpnameItemSearch({ gudang, kind }: { gudang: number; kind: UnitK
         </section>
       )}
 
-      {showResults && isUnit && q.length >= 2 && catalog.length > 0 && (
+      {showResults && canAdd && q.length >= 2 && catalog.length > 0 && (
         <section>
           <h3 className="mb-1.5 px-1 text-xs font-medium text-muted">Tambah dari katalog farmasi</h3>
           <ul className="overflow-hidden rounded-xl border border-dashed border-border">

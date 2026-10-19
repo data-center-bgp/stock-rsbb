@@ -10,9 +10,9 @@ import { Alert, fieldClass, primaryButtonClass, secondaryButtonClass } from "@/c
 import type { InventoryDetail } from "@/lib/types";
 
 // `isUnit`: a hospital unit's inventory. There the database compares the
-// count with the previous count (the first one has nothing to compare with
-// and becomes the starting stock), then sets the stock to what was counted
-// (0010_unit_inventories.sql). `firstCount` = never counted before.
+// count with the unit's stock (an item with nothing recorded yet has nothing
+// to compare with, and its count becomes the starting stock), then sets the
+// stock to what was counted (0010, 0013). `firstCount` = nothing recorded yet.
 export function OpnameForm({
   inventory,
   isUnit = false,
@@ -116,7 +116,7 @@ export function OpnameForm({
         </p>
       ) : (
         <div className="flex items-center justify-between rounded-xl bg-surface-muted px-4 py-3 text-sm">
-          <span className="text-muted">{isUnit ? "Selisih dengan hitungan terakhir" : "Selisih dengan stok sistem"}</span>
+          <span className="text-muted">{isUnit ? "Selisih dengan stok unit" : "Selisih dengan stok sistem"}</span>
           <span
             className={`font-semibold tabular-nums ${
               variance === null || variance === 0
